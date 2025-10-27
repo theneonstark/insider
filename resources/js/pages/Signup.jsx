@@ -1,16 +1,16 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.png";
+import { Link } from "@inertiajs/react";
+import { register } from "@/lib/apis";
+import toast, { Toaster } from "react-hot-toast";
 
 const Signup = () => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
+  // const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -20,13 +20,24 @@ const Signup = () => {
     password: ""
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    toast({
-      title: "Account created!",
-      description: "Welcome to Insiders Index",
-    });
-    navigate("/dashboard");
+    try {
+      const response = await register(formData);
+      console.log(response.data);
+      toast.success("Register Success");
+
+      // Optionally redirect after success
+      setTimeout(
+        ()=>{
+          window.location.href = "/dashboard";
+        }
+      ,2000)
+
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response.data.message || 'Something went Wrong');
+    }
   };
 
   return (
@@ -119,12 +130,13 @@ const Signup = () => {
           
           <p className="text-center mt-4 text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link to="/login" className="text-primary hover:underline">
+            <Link href="/login" className="text-primary hover:underline">
               Login
             </Link>
           </p>
         </CardContent>
       </Card>
+      <Toaster />
     </div>
   );
 };

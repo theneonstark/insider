@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,22 +13,27 @@ import EditProfileModal from "@/components/EditProfileModal";
 import DashboardBanner from "@/components/DashboardBanner";
 import LandingPageEditor from "@/components/LandingPageEditor";
 import profileAmy from "@/assets/profile-amy.jpg";
+import { usePage } from "@inertiajs/react";
 
 const Dashboard = () => {
+  const { props } = usePage();
+  const user = props.auth?.user;
+
+  console.log("User Info:", user);
   const [activeSection, setActiveSection] = useState("dashboard");
   const [viewProfileOpen, setViewProfileOpen] = useState(false);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   
   const [userProfile, setUserProfile] = useState({
-    name: "Amy Anderson",
-    email: "amy@example.com",
-    phone: "(555) 123-4567",
-    businessType: "Marketing & Consulting",
-    state: "New York",
-    dob: "1990-05-15",
-    bio: "Passionate marketing expert helping businesses grow their brand visibility and engagement.",
+    name: user?.name,
+    email: user?.email,
+    phone: user?.phone,
+    businessType: user?.business_type,
+    state: user?.state,
+    dob: user?.dob,
+    bio: user?.bio,
     tier: "Premium Elite",
-    views: 342,
+    views: user?.views,
     image: profileAmy
   });
 

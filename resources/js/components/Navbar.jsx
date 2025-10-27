@@ -21,12 +21,12 @@ const Navbar = () => {
           </div>
           
           <div className="flex items-center gap-3">
-            <Link to="/login">
+            <Link href="/login">
               <Button variant="ghost" className="hover:bg-secondary">
                 Login
               </Button>
             </Link>
-            <Link to="/signup">
+            <Link href="/signup">
               <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-[var(--shadow-card)]">
                 Join Now
               </Button>

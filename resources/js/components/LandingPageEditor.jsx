@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Trash2, Eye, Save } from "lucide-react";
-import { toast } from "sonner";
+import toast, { Toaster } from "react-hot-toast";
 
 const LandingPageEditor = () => {
   const [aboutMe, setAboutMe] = useState({
@@ -112,15 +112,11 @@ const LandingPageEditor = () => {
   };
 
   const handleSave = () => {
-    toast.success("Landing page updated successfully!", {
-      duration: 2000,
-    });
+    toast.success("Landing page updated successfully!");
   };
 
   const handlePreview = () => {
-    toast.info("Opening preview...", {
-      duration: 2000,
-    });
+    toast("Opening preview...");
   };
 
   return (
@@ -367,6 +363,7 @@ const LandingPageEditor = () => {
           </Tabs>
         </CardContent>
       </Card>
+      <Toaster/>
     </div>
   );
 };

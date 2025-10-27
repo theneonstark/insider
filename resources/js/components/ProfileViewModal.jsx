@@ -3,16 +3,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Eye } from "lucide-react";
 import { useEffect } from "react";
-import { toast } from "sonner";
+import toast, { Toaster } from "react-hot-toast";
 
 const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement }) => {
+  
   useEffect(() => {
     if (open && profile && onViewIncrement) {
       // Increment view counter when modal fully opens
       onViewIncrement();
-      toast.success("Profile viewed (+1)", {
-        duration: 2000,
-      });
+      // toast.success("Profile viewed (+1)", {
+      //   duration: 2000,
+      // });
     }
   }, [open, profile, onViewIncrement]);
 
@@ -121,6 +122,7 @@ const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement
           </div>
         </div>
       </DialogContent>
+      <Toaster/>
     </Dialog>
   );
 };

@@ -4,10 +4,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
-import { toast } from "sonner";
+import toast, { Toaster } from "react-hot-toast";
+import { updateProfile } from "@/lib/apis";
 
 const EditProfileModal = ({ profile, open, onOpenChange, onSave }) => {
   const [formData, setFormData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false); // Add loading state
 
   useEffect(() => {
     if (profile) {
@@ -17,13 +19,29 @@ const EditProfileModal = ({ profile, open, onOpenChange, onSave }) => {
 
   if (!formData) return null;
 
-  const handleSave = () => {
-    onSave(formData);
-    toast.success("Profile updated successfully", {
-      duration: 2000,
-    });
-    onOpenChange(false);
-  };
+  const handleSave = async () => {
+  setIsLoading(true);
+
+  try {
+    const response = await updateProfile(formData);
+    // Axios already gives you the data
+    if (response.status === 200) {
+      onSave(formData); // Update local state if needed
+      toast.success(response.data.message || "Profile updated successfully", {
+        duration: 2000,
+      });
+      onOpenChange(false); // Close modal
+    } else {
+      throw new Error("Failed to update profile");
+    }
+
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    toast.error("Failed to update profile. Please try again.");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -31,7 +49,7 @@ const EditProfileModal = ({ profile, open, onOpenChange, onSave }) => {
         <DialogHeader>
           <DialogTitle className="text-2xl font-heading">Edit Profile</DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-4 py-4">
           <div>
             <Label htmlFor="name">Full Name</Label>
@@ -41,7 +59,7 @@ const EditProfileModal = ({ profile, open, onOpenChange, onSave }) => {
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             />
           </div>
-          
+
           <div>
             <Label htmlFor="email">Email Address</Label>
             <Input
@@ -51,7 +69,7 @@ const EditProfileModal = ({ profile, open, onOpenChange, onSave }) => {
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             />
           </div>
-          
+
           <div>
             <Label htmlFor="phone">Phone Number</Label>
             <Input
@@ -60,7 +78,7 @@ const EditProfileModal = ({ profile, open, onOpenChange, onSave }) => {
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
             />
           </div>
-          
+
           <div>
             <Label htmlFor="businessType">Business Type</Label>
             <Input
@@ -69,7 +87,7 @@ const EditProfileModal = ({ profile, open, onOpenChange, onSave }) => {
               onChange={(e) => setFormData({ ...formData, businessType: e.target.value })}
             />
           </div>
-          
+
           <div>
             <Label htmlFor="state">State</Label>
             <Input
@@ -78,7 +96,7 @@ const EditProfileModal = ({ profile, open, onOpenChange, onSave }) => {
               onChange={(e) => setFormData({ ...formData, state: e.target.value })}
             />
           </div>
-          
+
           <div>
             <Label htmlFor="dob">Date of Birth</Label>
             <Input
@@ -88,7 +106,7 @@ const EditProfileModal = ({ profile, open, onOpenChange, onSave }) => {
               onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
             />
           </div>
-          
+
           <div>
             <Label htmlFor="bio">Bio</Label>
             <Textarea
@@ -99,7 +117,7 @@ const EditProfileModal = ({ profile, open, onOpenChange, onSave }) => {
               placeholder="Tell us about yourself and your business..."
             />
           </div>
-          
+
           <div>
             <Label htmlFor="profilePic">Profile Picture URL</Label>
             <Input
@@ -109,23 +127,26 @@ const EditProfileModal = ({ profile, open, onOpenChange, onSave }) => {
               placeholder="https://..."
             />
           </div>
-          
+
           <div className="flex gap-3 pt-4">
-            <Button 
+            <Button
               onClick={handleSave}
               className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              disabled={isLoading} // Disable button while loading
             >
-              Save Changes
+              {isLoading ? "Saving..." : "Save Changes"}
             </Button>
-            <Button 
+            <Button
               variant="outline"
               onClick={() => onOpenChange(false)}
+              disabled={isLoading} // Disable cancel button while loading
             >
               Cancel
             </Button>
           </div>
         </div>
       </DialogContent>
+      <Toaster />
     </Dialog>
   );
 };
