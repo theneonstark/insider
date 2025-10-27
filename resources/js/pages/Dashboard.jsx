@@ -19,7 +19,6 @@ const Dashboard = () => {
   const { props } = usePage();
   const user = props.auth?.user;
 
-  console.log("User Info:", user);
   const [activeSection, setActiveSection] = useState("dashboard");
   const [viewProfileOpen, setViewProfileOpen] = useState(false);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
@@ -38,7 +37,7 @@ const Dashboard = () => {
   });
 
   const handleViewIncrement = () => {
-    setUserProfile(prev => ({ ...prev, views: prev.views + 1 }));
+    setUserProfile(prev => ({ ...prev, views: user?.views}));
   };
 
   const handleSaveProfile = (updatedProfile) => {

@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Trash2, Eye, Save } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
+import { updateLandingPage } from "@/lib/apis";
 
 const LandingPageEditor = () => {
   const [aboutMe, setAboutMe] = useState({
@@ -111,8 +112,30 @@ const LandingPageEditor = () => {
     setOffers(offers.filter(o => o.id !== id));
   };
 
-  const handleSave = () => {
-    toast.success("Landing page updated successfully!");
+  const handleSave = async () => {
+    try {
+      toast.loading("Saving landing page...", { id: "saving" });
+
+      // Prepare all sections in consistent format
+      const payload = [
+        { type: "about", data: aboutMe },
+        { type: "service", data: services },
+        { type: "testimonial", data: testimonials },
+        { type: "offer", data: offers },
+      ];
+
+      // Send one API request with all data
+      const response = await updateLandingPage(payload);
+
+      if (response.status === 200) {
+        toast.success("Landing page updated successfully!", { id: "saving" });
+      } else {
+        toast.error("Failed to save landing page", { id: "saving" });
+      }
+    } catch (error) {
+      console.error("Error saving landing page:", error);
+      toast.error("Something went wrong while saving", { id: "saving" });
+    }
   };
 
   const handlePreview = () => {

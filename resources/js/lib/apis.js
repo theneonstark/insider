@@ -34,3 +34,28 @@ export const updateProfile = async (data) => {
         throw err;
     }
 }
+
+export const updateLandingPage = async(data) => {
+    try{
+        const response = await axios.post(`/updatelandingpage`, data)
+        return response;
+    }catch(err){
+        console.error('Something went wrong',err);
+        throw err;
+    }
+}
+
+
+
+
+// Admin APIs
+
+export const userdata = async() => {
+    try{
+        const res = await axios.get('/admin/userdata');
+        return res?.data;
+    }catch(err){
+        console.error(err);
+        throw err;
+    }
+}

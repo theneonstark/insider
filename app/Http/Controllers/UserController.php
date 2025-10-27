@@ -79,65 +79,6 @@ class UserController
         return redirect('/');
     }
 
-    public function updateProfile(Request $request)
-{
-    $user = Auth::user();
-
-    if (!$user) {
-        return response()->json([
-            'error' => 'Unauthenticated',
-        ], 401);
-    }
-
-    // Determine the actual data (in case it's nested under 'data')
-    $data = $request->has('data') ? $request->input('data') : $request->all();
-
-    // Validate incoming request
-    $validator = Validator::make($data, [
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|max:255|unique:users,email,' . $user->id,
-        'phone' => 'nullable|string|max:20',
-        'businessType' => 'nullable|string|max:100',
-        'state' => 'nullable|string|max:100',
-        'dob' => 'nullable|date',
-        'bio' => 'nullable|string|max:1000',
-        'image' => 'nullable|url|max:255',
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json([
-            'error' => 'Validation failed',
-            'messages' => $validator->errors(),
-        ], 422);
-    }
-
-    try {
-        // Update user profile
-        $user->update([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'phone' => $data['phone'] ?? null,
-            'business_type' => $data['businessType'] ?? null,
-            'state' => $data['state'] ?? null,
-            'dob' => $data['dob'] ?? null,
-            'bio' => $data['bio'] ?? null,
-            'image' => $data['image'] ?? null,
-        ]);
-
-        return response()->json([
-            'message' => 'Profile updated successfully',
-            'data' => $user,
-        ], 200);
-
-    } catch (\Exception $e) {
-        \Log::error('Profile update failed: ' . $e->getMessage());
-        return response()->json([
-            'error' => 'Failed to update profile',
-            'message' => $e->getMessage(),
-        ], 500);
-    }
-}
-
 
     public function logout(Request $request)
     {

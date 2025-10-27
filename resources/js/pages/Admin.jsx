@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -13,6 +13,7 @@ import EditProfileModal from "@/components/EditProfileModal";
 import profileAmy from "@/assets/profile-amy.jpg";
 import profileShawna from "@/assets/profile-shawna.jpg";
 import profileTonya from "@/assets/profile-tonya.jpg";
+import { userdata } from "@/lib/apis";
 
 const Admin = () => {
   const [activeSection, setActiveSection] = useState("overview");
@@ -20,50 +21,7 @@ const Admin = () => {
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
-  const [users, setUsers] = useState([
-    { 
-      name: "Amy A.", 
-      email: "amy@example.com", 
-      phone: "(555) 123-4567",
-      businessType: "Marketing Expert",
-      state: "New York",
-      dob: "1990-05-15",
-      bio: "Passionate about helping businesses grow.",
-      tier: "She Sparkle", 
-      views: 124, 
-      featured: true, 
-      status: "Active",
-      image: profileAmy
-    },
-    { 
-      name: "Shawna A.", 
-      email: "shawna@example.com",
-      phone: "(555) 234-5678",
-      businessType: "Creative Director",
-      state: "California",
-      dob: "1988-08-22",
-      bio: "Creative director with 10+ years experience.",
-      tier: "She Shine", 
-      views: 89, 
-      featured: false, 
-      status: "Active",
-      image: profileShawna
-    },
-    { 
-      name: "Tonya D.", 
-      email: "tonya@example.com",
-      phone: "(555) 345-6789",
-      businessType: "Business Coach",
-      state: "Texas",
-      dob: "1992-03-10",
-      bio: "Helping entrepreneurs achieve their dreams.",
-      tier: "She Sparkle", 
-      views: 156, 
-      featured: true, 
-      status: "Active",
-      image: profileTonya
-    }
-  ]);
+  const [users, setUsers] = useState([]);
 
   const stats = [
     { title: "Total Users", value: users.length.toString(), icon: Users, change: "+12%" },
@@ -71,6 +29,20 @@ const Admin = () => {
     { title: "Featured Members", value: users.filter(u => u.featured).length.toString(), icon: Award, change: "+4%" },
     { title: "Active Ads", value: "2", icon: BarChart3, change: "0%" }
   ];
+
+  const fetchUsers = async () => {
+    try {
+      const response = await userdata(); // call API
+      console.log(response.data); // check payload
+      setUsers(response.data); // set users from backend
+    } catch (err) {
+      console.error("Something went wrong while fetching:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []); // run once on mount
 
   const handleViewProfile = (user) => {
     setSelectedUser(user);

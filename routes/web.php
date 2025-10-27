@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
@@ -19,9 +21,15 @@ Route::group(['prefix' => 'auth'], function () {
     Route::post('check', [UserController::class, 'login'])->name('authCheck');
     Route::get('/logout', [UserController::class, 'logout'])->name('logout');
     Route::post('reset', [UserController::class, 'passwordReset'])->name('authReset');
-    Route::post('/update', [UserController::class, 'updateProfile']);
+    Route::post('/update', [HomeController::class, 'updateProfile']);
 });
 
 Route::group(['middleware'=>'auth'], function () {
     Route::get('/dashboard', [HomeController::class, 'index']);
+    Route::post('/updatelandingpage', [HomeController::class, 'updateLandingPage']);
+});
+
+Route::group(['prefix' => 'admin'], function () {
+    Route::get('/dashboard', [DashboardController::class, 'index']);
+    Route::get('/userdata', [AdminController::class, 'users']);
 });

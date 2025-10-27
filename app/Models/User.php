@@ -22,6 +22,7 @@ class User extends Authenticatable
         'tier',
         'views',
         'image',
+        'about',
         'password',
         'status',
     ];

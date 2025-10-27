@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Offer;
+use App\Models\Service;
+use App\Models\Testimonial;
 use App\Models\User;
 use App\Models\Userbank;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 
 class HomeController
@@ -13,4 +18,175 @@ class HomeController
     {
         return Inertia::render('Dashboard');
     }
+
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'error' => 'Unauthenticated',
+            ], 401);
+        }
+
+        // Determine the actual data (in case it's nested under 'data')
+        $data = $request->has('data') ? $request->input('data') : $request->all();
+
+        // Validate incoming request
+        $validator = Validator::make($data, [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            'phone' => 'nullable|string|max:20',
+            'businessType' => 'nullable|string|max:100',
+            'state' => 'nullable|string|max:100',
+            'dob' => 'nullable|date',
+            'bio' => 'nullable|string|max:1000',
+            'image' => 'nullable|url|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => 'Validation failed',
+                'messages' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            // Update user profile
+            $user->update([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'phone' => $data['phone'] ?? null,
+                'business_type' => $data['businessType'] ?? null,
+                'state' => $data['state'] ?? null,
+                'dob' => $data['dob'] ?? null,
+                'bio' => $data['bio'] ?? null,
+                'image' => $data['image'] ?? null,
+            ]);
+
+            return response()->json([
+                'message' => 'Profile updated successfully',
+                'data' => $user,
+            ], 200);
+        } catch (\Exception $e) {
+            \Log::error('Profile update failed: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Failed to update profile',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function updateLandingPage(Request $request)
+{
+    $payload = $request->all();
+
+    if (!is_array($payload) || empty($payload)) {
+        return response()->json(['error' => 'Invalid payload format'], 400);
+    }
+
+    $user = Auth::user();
+
+    foreach ($payload as $section) {
+        $type = $section['type'] ?? null;
+        $data = $section['data'] ?? null;
+
+        if (!$type || !$data) continue;
+
+        switch ($type) {
+            // ----------------------- ABOUT -----------------------
+            case 'about':
+                $validated = validator($data, [
+                    'headline' => 'required|string|max:255',
+                    'bio' => 'required|string',
+                    'tagline' => 'nullable|string|max:255',
+                ])->validate();
+
+                $user->update([
+                    'about' => json_encode($validated),
+                ]);
+                break;
+
+            // ----------------------- SERVICE -----------------------
+            case 'service':
+                if (!is_array($data)) continue 2;
+
+                foreach ($data as $serviceData) {
+                    $validated = validator($serviceData, [
+                        'title' => 'required|string|max:255',
+                        'description' => 'required|string',
+                        'price' => 'nullable|string|max:255',
+                    ])->validate();
+
+                    \App\Models\Service::updateOrCreate(
+                        ['id' => $serviceData['id'] ?? null],
+                        [
+                            'user_id' => $user->id,
+                            'title' => $validated['title'],
+                            'description' => $validated['description'],
+                            'price' => $validated['price'] ?? null,
+                        ]
+                    );
+                }
+                break;
+
+            // ----------------------- TESTIMONIAL -----------------------
+            case 'testimonial':
+                if (!is_array($data)) continue 2;
+
+                foreach ($data as $testData) {
+                    $validated = validator($testData, [
+                        'name' => 'required|string|max:255',
+                        'role' => 'nullable|string|max:255',
+                        'content' => 'required|string',
+                        'rating' => 'nullable|numeric|min:1|max:5',
+                    ])->validate();
+
+                    \App\Models\Testimonial::updateOrCreate(
+                        ['id' => $testData['id'] ?? null],
+                        [
+                            'user_id' => $user->id,
+                            'name' => $validated['name'],
+                            'designation' => $validated['role'] ?? null,
+                            'message' => $validated['content'],
+                            'rating' => $validated['rating'] ?? 5,
+                        ]
+                    );
+                }
+                break;
+
+            // ----------------------- OFFER -----------------------
+            case 'offer':
+                if (!is_array($data)) continue 2;
+
+                foreach ($data as $offerData) {
+                    $validated = validator($offerData, [
+                        'title' => 'required|string|max:255',
+                        'description' => 'nullable|string',
+                        'validUntil' => 'nullable|date',
+                    ])->validate();
+
+                    \App\Models\Offer::updateOrCreate(
+                        ['id' => $offerData['id'] ?? null],
+                        [
+                            'user_id' => $user->id,
+                            'title' => $validated['title'],
+                            'description' => $validated['description'] ?? null,
+                            'valid_until' => $validated['validUntil'] ?? null,
+                        ]
+                    );
+                }
+                break;
+
+            // ----------------------- DEFAULT -----------------------
+            default:
+                continue 2;
+        }
+    }
+
+    return response()->json([
+        'message' => 'Landing page updated successfully',
+    ], 200);
+}
+
 }

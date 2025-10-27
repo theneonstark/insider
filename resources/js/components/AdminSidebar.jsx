@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "@inertiajs/react";
 import { Home, Megaphone, Users, Star, BarChart, Edit, Settings, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
