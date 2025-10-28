@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,68 +7,22 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Trash2, Eye, Save } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
-import { updateLandingPage } from "@/lib/apis";
+import { getLandingPage, updateLandingPage } from "@/lib/apis";
 
 const LandingPageEditor = () => {
-  const [aboutMe, setAboutMe] = useState({
-    headline: "Marketing Expert & Business Strategist",
-    bio: "With over 10 years of experience, I help businesses grow their brand visibility and engagement through strategic marketing campaigns.",
-    tagline: "Let's grow your business together"
-  });
+  const [aboutMe, setAboutMe] = useState({});
+  const [services, setServices] = useState([]);
+  const [testimonials, setTestimonials] = useState([]);
+  const [offers, setOffers] = useState([]);
 
-  const [services, setServices] = useState([
-    {
-      id: "1",
-      title: "Brand Strategy Consultation",
-      description: "90-minute deep dive into your brand positioning and market strategy",
-      price: "$500"
-    },
-    {
-      id: "2",
-      title: "Social Media Management",
-      description: "Full-service social media management for up to 3 platforms",
-      price: "$1,200/month"
-    }
-  ]);
-
-  const [testimonials, setTestimonials] = useState([
-    {
-      id: "1",
-      name: "Sarah Johnson",
-      role: "CEO, TechStart Inc",
-      content: "Amy transformed our marketing strategy. We saw a 300% increase in engagement within 3 months!",
-      rating: 5
-    },
-    {
-      id: "2",
-      name: "Maria Rodriguez",
-      role: "Founder, Creative Studio",
-      content: "Professional, insightful, and results-driven. Highly recommend working with Amy!",
-      rating: 5
-    }
-  ]);
-
-  const [offers, setOffers] = useState([
-    {
-      id: "1",
-      title: "New Client Special: 20% Off First Month",
-      description: "Book your first consultation this month and get 20% off any service package",
-      validUntil: "2025-12-31"
-    }
-  ]);
-
+  // ---------- CRUD HANDLERS ----------
   const addService = () => {
-    const newService = {
-      id: Date.now().toString(),
-      title: "",
-      description: "",
-      price: ""
-    };
+    const newService = { id: Date.now().toString(), title: "", description: "", price: "" };
     setServices([...services, newService]);
   };
 
   const updateService = (id, field, value) => {
-    setServices(services.map(s => s.id === id ? { ...s, [field]: value } : s));
+    setServices(services.map(s => (s.id === id ? { ...s, [field]: value } : s)));
   };
 
   const deleteService = (id) => {
@@ -76,18 +30,12 @@ const LandingPageEditor = () => {
   };
 
   const addTestimonial = () => {
-    const newTestimonial = {
-      id: Date.now().toString(),
-      name: "",
-      role: "",
-      content: "",
-      rating: 5
-    };
+    const newTestimonial = { id: Date.now().toString(), name: "", role: "", content: "", rating: 5 };
     setTestimonials([...testimonials, newTestimonial]);
   };
 
   const updateTestimonial = (id, field, value) => {
-    setTestimonials(testimonials.map(t => t.id === id ? { ...t, [field]: value } : t));
+    setTestimonials(testimonials.map(t => (t.id === id ? { ...t, [field]: value } : t)));
   };
 
   const deleteTestimonial = (id) => {
@@ -95,28 +43,68 @@ const LandingPageEditor = () => {
   };
 
   const addOffer = () => {
-    const newOffer = {
-      id: Date.now().toString(),
-      title: "",
-      description: "",
-      validUntil: ""
-    };
+    const newOffer = { id: Date.now().toString(), title: "", description: "", validUntil: "" };
     setOffers([...offers, newOffer]);
   };
 
   const updateOffer = (id, field, value) => {
-    setOffers(offers.map(o => o.id === id ? { ...o, [field]: value } : o));
+    setOffers(offers.map(o => (o.id === id ? { ...o, [field]: value } : o)));
   };
 
   const deleteOffer = (id) => {
     setOffers(offers.filter(o => o.id !== id));
   };
 
+  // 🧩 Helper — format and set response
+  const setResponseData = (resData) => {
+    setAboutMe(resData.about || {});
+    setServices(resData.services || []);
+    setTestimonials(
+      (resData.testimonials || []).map((t) => ({
+        id: t.id?.toString(),
+        name: t.name,
+        role: t.designation,
+        content: t.message,
+        rating: t.rating,
+      }))
+    );
+    setOffers(
+      (resData.offers || []).map((o) => ({
+        id: o.id?.toString(),
+        title: o.title,
+        description: o.description,
+        validUntil: o.valid_until || null,
+      }))
+    );
+  };
+
+  // 🧠 Fetch function (can be reused)
+  const fetchLandingPage = async () => {
+    try {
+      toast.loading("Fetching landing page data...", { id: "fetching" });
+      const response = await getLandingPage(); // 👈 yahi se fetch hoga
+      if (response.status === 200 && response.data?.data) {
+        setResponseData(response.data.data);
+        toast.success("Data loaded successfully", { id: "fetching" });
+      } else {
+        toast.error("Failed to fetch landing page", { id: "fetching" });
+      }
+    } catch (error) {
+      console.error("Error fetching landing page:", error);
+      toast.error("Something went wrong while fetching data", { id: "fetching" });
+    }
+  };
+
+  // 📦 On mount — call fetchLandingPage
+  useEffect(() => {
+    fetchLandingPage();
+  }, []);
+
+  // 💾 Save handler
   const handleSave = async () => {
     try {
       toast.loading("Saving landing page...", { id: "saving" });
 
-      // Prepare all sections in consistent format
       const payload = [
         { type: "about", data: aboutMe },
         { type: "service", data: services },
@@ -124,13 +112,14 @@ const LandingPageEditor = () => {
         { type: "offer", data: offers },
       ];
 
-      // Send one API request with all data
       const response = await updateLandingPage(payload);
-
       if (response.status === 200) {
         toast.success("Landing page updated successfully!", { id: "saving" });
+
+        // ✅ After update — refetch latest data
+        await fetchLandingPage();
       } else {
-        toast.error("Failed to save landing page", { id: "saving" });
+        toast.error("Failed to update landing page", { id: "saving" });
       }
     } catch (error) {
       console.error("Error saving landing page:", error);
@@ -138,9 +127,8 @@ const LandingPageEditor = () => {
     }
   };
 
-  const handlePreview = () => {
-    toast("Opening preview...");
-  };
+  const handlePreview = () => toast("Opening preview...");
+
 
   return (
     <div className="space-y-6">
@@ -153,20 +141,11 @@ const LandingPageEditor = () => {
         </CardHeader>
         <CardContent>
           <div className="flex gap-3 mb-6">
-            <Button 
-              onClick={handlePreview}
-              variant="outline"
-              className="gap-2"
-            >
-              <Eye className="w-4 h-4" />
-              Preview Landing Page
+            <Button onClick={handlePreview} variant="outline" className="gap-2">
+              <Eye className="w-4 h-4" /> Preview
             </Button>
-            <Button 
-              onClick={handleSave}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
-            >
-              <Save className="w-4 h-4" />
-              Save & Publish
+            <Button onClick={handleSave} className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2">
+              <Save className="w-4 h-4" /> Save & Publish
             </Button>
           </div>
 
@@ -178,45 +157,41 @@ const LandingPageEditor = () => {
               <TabsTrigger value="offers">Offers</TabsTrigger>
             </TabsList>
 
-            {/* About Me Tab */}
+            {/* About Me */}
             <TabsContent value="about" className="space-y-4">
               <div>
-                <Label htmlFor="headline">Headline</Label>
+                <Label>Headline</Label>
                 <Input
-                  id="headline"
-                  value={aboutMe.headline}
+                  value={aboutMe.headline || ""}
                   onChange={(e) => setAboutMe({ ...aboutMe, headline: e.target.value })}
                   placeholder="Your professional headline"
                 />
               </div>
               <div>
-                <Label htmlFor="bio">Bio</Label>
+                <Label>Bio</Label>
                 <Textarea
-                  id="bio"
                   rows={6}
-                  value={aboutMe.bio}
+                  value={aboutMe.bio || ""}
                   onChange={(e) => setAboutMe({ ...aboutMe, bio: e.target.value })}
                   placeholder="Tell your story..."
                 />
               </div>
               <div>
-                <Label htmlFor="tagline">Tagline</Label>
+                <Label>Tagline</Label>
                 <Input
-                  id="tagline"
-                  value={aboutMe.tagline}
+                  value={aboutMe.tagline || ""}
                   onChange={(e) => setAboutMe({ ...aboutMe, tagline: e.target.value })}
                   placeholder="Your catchy tagline"
                 />
               </div>
             </TabsContent>
 
-            {/* Services Tab */}
+            {/* Services */}
             <TabsContent value="services" className="space-y-4">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-semibold">Your Services</h3>
                 <Button onClick={addService} size="sm" className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  Add Service
+                  <Plus className="w-4 h-4" /> Add
                 </Button>
               </div>
               {services.map((service) => (
@@ -246,16 +221,11 @@ const LandingPageEditor = () => {
                           <Input
                             value={service.price}
                             onChange={(e) => updateService(service.id, "price", e.target.value)}
-                            placeholder="e.g., $500 or $1,200/month"
+                            placeholder="e.g., $500"
                           />
                         </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => deleteService(service.id)}
-                        className="ml-2 text-destructive"
-                      >
+                      <Button variant="ghost" size="icon" onClick={() => deleteService(service.id)} className="ml-2 text-destructive">
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
@@ -264,13 +234,12 @@ const LandingPageEditor = () => {
               ))}
             </TabsContent>
 
-            {/* Testimonials Tab */}
+            {/* Testimonials */}
             <TabsContent value="testimonials" className="space-y-4">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-semibold">Client Testimonials</h3>
                 <Button onClick={addTestimonial} size="sm" className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  Add Testimonial
+                  <Plus className="w-4 h-4" /> Add
                 </Button>
               </div>
               {testimonials.map((testimonial) => (
@@ -280,11 +249,10 @@ const LandingPageEditor = () => {
                       <div className="flex-1 space-y-3">
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <Label>Client Name</Label>
+                            <Label>Name</Label>
                             <Input
                               value={testimonial.name}
                               onChange={(e) => updateTestimonial(testimonial.id, "name", e.target.value)}
-                              placeholder="e.g., Sarah Johnson"
                             />
                           </div>
                           <div>
@@ -292,36 +260,29 @@ const LandingPageEditor = () => {
                             <Input
                               value={testimonial.role}
                               onChange={(e) => updateTestimonial(testimonial.id, "role", e.target.value)}
-                              placeholder="e.g., CEO, Company Name"
                             />
                           </div>
                         </div>
                         <div>
-                          <Label>Testimonial</Label>
+                          <Label>Content</Label>
                           <Textarea
                             rows={3}
                             value={testimonial.content}
                             onChange={(e) => updateTestimonial(testimonial.id, "content", e.target.value)}
-                            placeholder="What did they say about your work?"
                           />
                         </div>
                         <div>
-                          <Label>Rating (1-5)</Label>
+                          <Label>Rating</Label>
                           <Input
                             type="number"
                             min="1"
                             max="5"
                             value={testimonial.rating}
-                            onChange={(e) => updateTestimonial(testimonial.id, "rating", parseInt(e.target.value))}
+                            onChange={(e) => updateTestimonial(testimonial.id, "rating", e.target.value)}
                           />
                         </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => deleteTestimonial(testimonial.id)}
-                        className="ml-2 text-destructive"
-                      >
+                      <Button variant="ghost" size="icon" onClick={() => deleteTestimonial(testimonial.id)} className="ml-2 text-destructive">
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
@@ -330,13 +291,12 @@ const LandingPageEditor = () => {
               ))}
             </TabsContent>
 
-            {/* Offers Tab */}
+            {/* Offers */}
             <TabsContent value="offers" className="space-y-4">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-semibold">Promotional Offers</h3>
                 <Button onClick={addOffer} size="sm" className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  Add Offer
+                  <Plus className="w-4 h-4" /> Add
                 </Button>
               </div>
               {offers.map((offer) => (
@@ -345,11 +305,10 @@ const LandingPageEditor = () => {
                     <div className="flex justify-between items-start">
                       <div className="flex-1 space-y-3">
                         <div>
-                          <Label>Offer Title</Label>
+                          <Label>Title</Label>
                           <Input
                             value={offer.title}
                             onChange={(e) => updateOffer(offer.id, "title", e.target.value)}
-                            placeholder="e.g., New Client Special: 20% Off"
                           />
                         </div>
                         <div>
@@ -358,24 +317,18 @@ const LandingPageEditor = () => {
                             rows={2}
                             value={offer.description}
                             onChange={(e) => updateOffer(offer.id, "description", e.target.value)}
-                            placeholder="Describe your offer..."
                           />
                         </div>
                         <div>
                           <Label>Valid Until</Label>
                           <Input
                             type="date"
-                            value={offer.validUntil}
+                            value={offer.validUntil || ""}
                             onChange={(e) => updateOffer(offer.id, "validUntil", e.target.value)}
                           />
                         </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => deleteOffer(offer.id)}
-                        className="ml-2 text-destructive"
-                      >
+                      <Button variant="ghost" size="icon" onClick={() => deleteOffer(offer.id)} className="ml-2 text-destructive">
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
@@ -386,7 +339,6 @@ const LandingPageEditor = () => {
           </Tabs>
         </CardContent>
       </Card>
-      <Toaster/>
     </div>
   );
 };

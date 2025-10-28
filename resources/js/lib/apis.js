@@ -45,6 +45,25 @@ export const updateLandingPage = async(data) => {
     }
 }
 
+export const getLandingPage = async() => {
+    try{
+        const res = await axios.get('/getLandingPage');
+        return res;
+    }catch(error){
+        console.error(error);
+        throw error;
+    }
+}
+
+export const membershipPlans = async() => {
+    try{
+        const res = await axios.get('/membership/plans');
+        return res;
+    }catch(error){
+        console.error(error);
+        throw error;
+    }
+}
 
 
 

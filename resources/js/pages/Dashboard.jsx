@@ -31,7 +31,7 @@ const Dashboard = () => {
     state: user?.state,
     dob: user?.dob,
     bio: user?.bio,
-    tier: "Premium Elite",
+    tier: user?.tier,
     views: user?.views,
     image: profileAmy
   });

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MemberController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use Illuminate\Foundation\Application;
@@ -27,6 +28,11 @@ Route::group(['prefix' => 'auth'], function () {
 Route::group(['middleware'=>'auth'], function () {
     Route::get('/dashboard', [HomeController::class, 'index']);
     Route::post('/updatelandingpage', [HomeController::class, 'updateLandingPage']);
+    Route::get('/getLandingPage', [HomeController::class, 'getLandingPage']);
+
+    Route::group(['prefix' => 'membership'], function () {
+        Route::get('/plans', [MemberController::class, 'index']);
+    });
 });
 
 Route::group(['prefix' => 'admin'], function () {
