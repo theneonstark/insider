@@ -29,13 +29,13 @@ class HomeController
             ], 401);
         }
 
-        // Determine the actual data (in case it's nested under 'data')
+        // Get request data
         $data = $request->has('data') ? $request->input('data') : $request->all();
 
-        // Validate incoming request
+        // Validate
         $validator = Validator::make($data, [
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id, // allow same user email
             'phone' => 'nullable|string|max:20',
             'businessType' => 'nullable|string|max:100',
             'state' => 'nullable|string|max:100',
@@ -52,21 +52,24 @@ class HomeController
         }
 
         try {
-            // Update user profile
-            $user->update([
-                'name' => $data['name'],
-                'email' => $data['email'],
-                'phone' => $data['phone'] ?? null,
-                'business_type' => $data['businessType'] ?? null,
-                'state' => $data['state'] ?? null,
-                'dob' => $data['dob'] ?? null,
-                'bio' => $data['bio'] ?? null,
-                'image' => $data['image'] ?? null,
-            ]);
+            // Update or Create user record
+            $updatedUser = \App\Models\User::updateOrCreate(
+                ['id' => $user->id], // condition
+                [
+                    'name' => $data['name'],
+                    'email' => $data['email'],
+                    'phone' => $data['phone'] ?? null,
+                    'business_type' => $data['businessType'] ?? null,
+                    'state' => $data['state'] ?? null,
+                    'dob' => $data['dob'] ?? null,
+                    'bio' => $data['bio'] ?? null,
+                    'image' => $data['image'] ?? null,
+                ]
+            );
 
             return response()->json([
                 'message' => 'Profile updated successfully',
-                'data' => $user,
+                'data' => $updatedUser,
             ], 200);
         } catch (\Exception $e) {
             \Log::error('Profile update failed: ' . $e->getMessage());
@@ -76,6 +79,7 @@ class HomeController
             ], 500);
         }
     }
+
 
     public function updateLandingPage(Request $request)
     {
@@ -219,7 +223,5 @@ class HomeController
         ], 200);
     }
 
-    public function MembershipPlans(){
-        
-    }
+    public function MembershipPlans() {}
 }

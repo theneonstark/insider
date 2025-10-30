@@ -38,4 +38,5 @@ Route::group(['middleware'=>'auth'], function () {
 Route::group(['prefix' => 'admin'], function () {
     Route::get('/dashboard', [DashboardController::class, 'index']);
     Route::get('/userdata', [AdminController::class, 'users']);
+    Route::post('/usersUpdateAndAdd', [DashboardController::class, 'usersData']);
 });

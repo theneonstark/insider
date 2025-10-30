@@ -10,15 +10,18 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import AdminSidebar from "@/components/AdminSidebar";
 import ProfileViewModal from "@/components/ProfileViewModal";
 import EditProfileModal from "@/components/EditProfileModal";
+import AddUserModal from "@/components/AddUserModal"; 
 import profileAmy from "@/assets/profile-amy.jpg";
 import profileShawna from "@/assets/profile-shawna.jpg";
 import profileTonya from "@/assets/profile-tonya.jpg";
 import { userdata } from "@/lib/apis";
+import toast, { Toaster } from "react-hot-toast";
 
 const Admin = () => {
   const [activeSection, setActiveSection] = useState("overview");
   const [viewProfileOpen, setViewProfileOpen] = useState(false);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
+  const [addUserOpen, setAddUserOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
   const [users, setUsers] = useState([]);
@@ -52,9 +55,9 @@ const Admin = () => {
   const handleViewIncrement = () => {
     if (selectedUser) {
       setUsers(prev => prev.map(u => 
-        u.email === selectedUser.email ? { ...u, views: u.views + 1 } : u
+        u.email === selectedUser.email ? { ...u, views: u.views} : u
       ));
-      setSelectedUser((prev) => ({ ...prev, views: prev.views + 1 }));
+      setSelectedUser((prev) => ({ ...prev, views: prev.views}));
     }
   };
 
@@ -64,6 +67,16 @@ const Admin = () => {
     ));
     setSelectedUser(updatedProfile);
   };
+
+  const handleStatusChange = async (id, status) => {
+    // await axios.post(`/update-status/${id}`, { status });
+    toast.success(`User status updated to ${status ? "Active" : "Inactive"}`);
+  };
+
+  const handleAddUser = (newUser) => {
+    setUsers(prev => [...prev, newUser]);
+  };
+
 
   const renderContent = () => {
     switch (activeSection) {
@@ -88,9 +101,14 @@ const Admin = () => {
       case "users":
         return (
           <Card>
-            <CardHeader>
-              <CardTitle>User Management</CardTitle>
-              <CardDescription>View and manage all registered users</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>User Management</CardTitle>
+                <CardDescription>View and manage all registered users</CardDescription>
+              </div>
+              <Button onClick={() => setAddUserOpen(true)}>
+                Add User
+              </Button>
             </CardHeader>
             <CardContent>
               <Table>
@@ -110,10 +128,15 @@ const Admin = () => {
                     <TableRow key={index}>
                       <TableCell className="font-medium">{user.name}</TableCell>
                       <TableCell>{user.email}</TableCell>
-                      <TableCell>{user.tier}</TableCell>
+                      <TableCell>{user.tier_id}</TableCell>
                       <TableCell>{user.views}</TableCell>
                       <TableCell>{user.featured ? "Yes" : "No"}</TableCell>
-                      <TableCell>{user.status}</TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={user.status === 1}
+                          onCheckedChange={(val) => handleStatusChange(user.id, val)}
+                        />
+                      </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
                           <Button 
@@ -373,6 +396,13 @@ const Admin = () => {
         onOpenChange={setEditProfileOpen}
         onSave={handleSaveProfile}
       />
+
+      <AddUserModal
+        open={addUserOpen}
+        onOpenChange={setAddUserOpen}
+        onAddUser={handleAddUser}
+      />
+      <Toaster/>
     </div>
   );
 };
