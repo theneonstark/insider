@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class DashboardController
@@ -91,6 +94,99 @@ class DashboardController
                     'success' => false,
                     'message' => 'Unsupported request method'
                 ], 405);
+        }
+    }
+
+    public function userUpdate(Request $request) {
+
+        // Get payload data object (or fallback to all)
+        $data = $request->has('data') ? $request->input('data') : $request->all();
+
+        // Require id in the payload
+        $id = $data['id'] ?? null;
+        if (!$id) {
+            return response()->json(['error' => 'User id is required in data.id'], 400);
+        }
+
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        // Normalize possible field names: businessType vs business_type
+        if (array_key_exists('businessType', $data) && !array_key_exists('business_type', $data)) {
+            $data['business_type'] = $data['businessType'];
+        }
+
+        // Validation rules (use sometimes so admin can update partial fields)
+        $validator = Validator::make($data, [
+            'name' => 'sometimes|required|string|max:255',
+            'email' => [
+                'sometimes',
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($user->id),
+            ],
+            'password' => 'nullable|string|min:6',
+            'phone' => 'nullable|string|max:20',
+            'business_type' => 'nullable|string|max:100',
+            'state' => 'nullable|string|max:100',
+            'dob' => 'nullable|date',
+            'bio' => 'nullable|string|max:1000',
+            'image' => 'nullable|url|max:255',
+            'status' => 'nullable|boolean',
+            'role' => 'nullable|string|max:50',
+            'tier_id' => 'nullable|numeric|exists:tiers,id' // optional if you have tiers table
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => 'Validation failed',
+                'messages' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            // Update only provided fields
+            $updatable = [
+                'name' => 'name',
+                'email' => 'email',
+                'phone' => 'phone',
+                'business_type' => 'business_type',
+                'state' => 'state',
+                'dob' => 'dob',
+                'bio' => 'bio',
+                'image' => 'image',
+                'status' => 'status',
+                'role' => 'role',
+                'tier_id' => 'tier_id',
+            ];
+
+            foreach ($updatable as $key => $column) {
+                if (array_key_exists($key, $data)) {
+                    $user->{$column} = $data[$key];
+                }
+            }
+
+            // If password provided, hash it
+            if (!empty($data['password'])) {
+                $user->password = Hash::make($data['password']);
+            }
+
+            $user->save();
+
+            return response()->json([
+                'message' => 'User updated successfully',
+                'data' => $user,
+            ], 200);
+
+        } catch (\Exception $e) {
+            \Log::error('Admin update user failed: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Operation failed',
+                'message' => $e->getMessage(),
+            ], 500);
         }
     }
 }

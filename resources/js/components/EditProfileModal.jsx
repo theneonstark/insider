@@ -13,7 +13,6 @@ const EditProfileModal = ({ profile, open, onOpenChange, onSave }) => {
 
   useEffect(() => {
     if (profile) {
-      console.log({...profile})
       setFormData({ ...profile });
     }
   }, [profile]);
@@ -84,7 +83,7 @@ const EditProfileModal = ({ profile, open, onOpenChange, onSave }) => {
             <Label htmlFor="businessType">Business Type</Label>
             <Input
               id="businessType"
-              value={formData.business_type || ""}
+              value={formData.businessType || ""}
               onChange={(e) => setFormData({ ...formData, businessType: e.target.value })}
             />
           </div>

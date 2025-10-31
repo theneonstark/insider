@@ -146,7 +146,7 @@ const Admin = () => {
                           >
                             View
                           </Button>
-                          <Button 
+                          {/* <Button 
                             size="sm" 
                             variant="outline"
                             onClick={() => {
@@ -155,7 +155,7 @@ const Admin = () => {
                             }}
                           >
                             Edit
-                          </Button>
+                          </Button> */}
                         </div>
                       </TableCell>
                     </TableRow>

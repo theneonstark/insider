@@ -17,9 +17,11 @@ import profileAmy from "@/assets/profile-amy.jpg";
 import { usePage } from "@inertiajs/react";
 import { membershipPlans } from "@/lib/apis";
 
-const Dashboard = () => {
+const Dashboard = (userData) => {
   const { props } = usePage();
   const user = props.auth?.user;
+  console.log(userData?.user?.tier_name);
+  
 
   const [activeSection, setActiveSection] = useState("dashboard");
   const [viewProfileOpen, setViewProfileOpen] = useState(false);
@@ -36,8 +38,9 @@ const Dashboard = () => {
     state: user?.state || "",
     dob: user?.dob || "",
     bio: user?.bio || "",
-    tier: user?.tier || null,
+    tier: userData?.user?.tier_name || null,
     views: user?.views || 0,
+    featured: user?.featured || 0,
     image: profileAmy
   });
 
@@ -143,9 +146,9 @@ const Dashboard = () => {
                   <Award className="w-4 h-4 text-primary" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{userProfile.tier ? "Yes" : "No"}</div>
+                  <div className="text-2xl font-bold">{userProfile.featured ? "Yes" : "No"}</div>
                   <p className="text-xs text-muted-foreground">
-                    {userProfile.tier ? "Active this month" : "Upgrade to get featured"}
+                    {userProfile.featured ? "Active this month" : "Upgrade to get featured"}
                   </p>
                 </CardContent>
               </Card>

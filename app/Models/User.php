@@ -19,7 +19,7 @@ class User extends Authenticatable
         'state',
         'dob',
         'bio',
-        'tier',
+        'tier_id',
         'views',
         'image',
         'about',
@@ -31,6 +31,12 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    public function tier()
+    {
+        return $this->belongsTo(Tier::class, 'tier_id', 'id');
+        //                  ↑ Model     ↑ foreign_key  ↑ primary_key
+    }
 
     public function getUpdatedAtAttribute($value)
     {

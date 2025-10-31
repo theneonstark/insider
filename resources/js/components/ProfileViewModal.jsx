@@ -11,9 +11,6 @@ const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement
     if (open && profile && onViewIncrement) {
       // Increment view counter when modal fully opens
       onViewIncrement();
-      // toast.success("Profile viewed (+1)", {
-      //   duration: 2000,
-      // });
     }
   }, [open, profile, onViewIncrement]);
 

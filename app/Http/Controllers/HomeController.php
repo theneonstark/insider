@@ -5,19 +5,54 @@ namespace App\Http\Controllers;
 use App\Models\Offer;
 use App\Models\Service;
 use App\Models\Testimonial;
+use App\Models\Tier;
 use App\Models\User;
 use App\Models\Userbank;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 
 class HomeController
 {
-    public function index(Request $post, $section = null)
-    {
-        return Inertia::render('Dashboard');
+public function index(Request $request)
+{
+    $user = $request->user();
+
+    if (!$user) {
+        return redirect()->route('login');
     }
+
+    $tierName = DB::table('tiers')
+        ->where('id', $user->tier_id)
+        ->value('tier_name');
+
+    $authUser = [
+        'id'             => $user->id,
+        'name'           => $user->name,
+        'email'          => $user->email,
+        'phone'          => $user->phone,
+        'business_type'  => $user->business_type,
+        'dob'            => $user->dob,                    // Auto formatted
+        'state'          => $user->state,
+        'bio'            => $user->bio,
+        'tier_id'        => $user->tier_id,
+        'tier_name'      => $tierName ?? 'Free Plan',
+        'views'          => $user->views,
+        'image'          => $user->image ? asset('storage/' . $user->image) : null,
+        'about'          => $user->about,
+        'featured'       => $user->featured,              // boolean
+        'featured_valid' => $user->featured_valid,        // Auto formatted
+        'status'         => $user->status ? 'Active' : 'Inactive',
+        'created_at'     => $user->created_at,            // Auto formatted
+        'updated_at'     => $user->updated_at,            // Auto formatted
+    ];
+
+    return Inertia::render('Dashboard', [
+        'userData' => $authUser,
+    ]);
+}
 
     public function updateProfile(Request $request)
     {
