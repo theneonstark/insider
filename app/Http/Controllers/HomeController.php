@@ -50,7 +50,7 @@ public function index(Request $request)
     ];
 
     return Inertia::render('Dashboard', [
-        'userData' => $authUser,
+        'user' => $authUser,
     ]);
 }
 
