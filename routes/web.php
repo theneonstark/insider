@@ -40,10 +40,11 @@ Route::group(['middleware'=>'auth'], function () {
     Route::post('/create-payment-intent', [PaymentController::class, 'createPaymentIntent']);
     // Route::post('/webhook/stripe', StripeWebhookController::class)
     //  ->name('webhook.stripe');
-});
 
-Route::group(['prefix' => 'admin'], function () {
-    Route::get('/dashboard', [DashboardController::class, 'index']);
-    Route::get('/userdata', [AdminController::class, 'users']);
-    Route::post('/usersUpdateAndAdd', [DashboardController::class, 'usersData']);
+    
+    Route::group(['prefix' => 'admin'], function () {
+        Route::get('/dashboard', [DashboardController::class, 'index']);
+        Route::get('/userdata', [AdminController::class, 'users']);
+        Route::post('/usersUpdateAndAdd', [DashboardController::class, 'usersData']);
+    });
 });
