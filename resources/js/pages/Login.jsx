@@ -28,7 +28,7 @@ const Login = () => {
     try {
       // 👇 Use the imported API function here
       const response = await LoginApi(credentials);
-      const { message, status } = response.data;
+      const { message, status, redirect } = response.data;
 
       if (message === "Username or password is incorrect") {
         toast.error("Username or password is incorrect");
@@ -41,7 +41,7 @@ const Login = () => {
         toast.error("Your account currently de-activated, please contact administrator");
       } else {
         toast.success("Login Success 🎉");
-        setTimeout(() => router.visit("/dashboard"), 1500);
+        setTimeout(() => router.visit(redirect), 1500);
       }
     } catch (error) {
       console.error("Login error:", error);

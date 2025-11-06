@@ -49,18 +49,16 @@ class UserController
 
         // ✅ Role-based redirect
         if ($user->role === 'admin') {
-            // dd('admin');
-            return redirect('/admin/dashboard');
+            $redirectUrl = '/admin/dashboard';
         } else {
-            dd('user');
-            // return redirect('/dashboard');
+            $redirectUrl = '/dashboard';
         }
 
-        // return response()->json([
-        //     'status' => 'success',
-        //     'message' => 'Login Successfully',
-        //     'redirect' => $redirectUrl
-        // ]);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Login Successfully',
+            'redirect' => $redirectUrl
+        ]);
     } else {
         return response()->json(['status' => 'ERR', 'message' => 'Something went wrong, Please contact Administrator']);
     }
