@@ -2,18 +2,15 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SearchFilters from "@/components/SearchFilters";
 import MemberCard from "@/components/MemberCard";
-import profileAmy from "@/assets/profile-amy.jpg";
-import profileShawna from "@/assets/profile-shawna.jpg";
-import profileTonya from "@/assets/profile-tonya.jpg";
 
 const Search = () => {
   const allMembers = [
-    { name: "Amy A.", title: "Marketing Expert", tier: "Sparkle", image: profileAmy, views: 124 },
-    { name: "Shawna A.", title: "Creative Director", tier: "Shine", image: profileShawna, views: 89 },
-    { name: "Tonya D.", title: "Business Coach", tier: "Sparkle", image: profileTonya, views: 156 },
-    { name: "Amy A.", title: "Marketing Expert", tier: "Elite", image: profileAmy, views: 200 },
-    { name: "Shawna A.", title: "Creative Director", tier: "Shine", image: profileShawna, views: 95 },
-    { name: "Tonya D.", title: "Business Coach", tier: "Sparkle", image: profileTonya, views: 178 },
+    { name: "Amy A.", title: "Marketing Expert", tier: "Sparkle", image: 'assets/profile-amy.jpg', views: 124 },
+    { name: "Shawna A.", title: "Creative Director", tier: "Shine", image: '/assets/profile-shawna.jpg', views: 89 },
+    { name: "Tonya D.", title: "Business Coach", tier: "Sparkle", image: '/assets/profile-tonya.jpg', views: 156 },
+    { name: "Amy A.", title: "Marketing Expert", tier: "Elite", image: 'assets/profile-amy.jpg', views: 200 },
+    { name: "Shawna A.", title: "Creative Director", tier: "Shine", image: '/assets/profile-shawna.jpg', views: 95 },
+    { name: "Tonya D.", title: "Business Coach", tier: "Sparkle", image: '/assets/profile-tonya.jpg', views: 178 },
   ];
 
   return (

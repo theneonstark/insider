@@ -9,7 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import logo from "@/assets/logo.png";
 import toast, { Toaster } from "react-hot-toast";
 import { Link, router } from "@inertiajs/react";
 import { Login as LoginApi } from "@/lib/apis"; // 👈 your API function import
@@ -56,7 +55,7 @@ const Login = () => {
       <Card className="w-full max-w-md animate-fade-in">
         <CardHeader className="text-center">
           <Link href="/" className="flex justify-center mb-4">
-            <img src={logo} alt="Insiders Index" className="h-16 w-auto" />
+            <img src={'/assets/logo.png'} alt="Insiders Index" className="h-16 w-auto" />
           </Link>
           <CardTitle className="text-2xl font-heading">Welcome Back</CardTitle>
           <CardDescription>Login to access your dashboard</CardDescription>

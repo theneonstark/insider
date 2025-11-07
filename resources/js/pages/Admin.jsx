@@ -10,10 +10,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import AdminSidebar from "@/components/AdminSidebar";
 import ProfileViewModal from "@/components/ProfileViewModal";
 import EditProfileModal from "@/components/EditProfileModal";
-import AddUserModal from "@/components/AddUserModal"; 
-import profileAmy from "@/assets/profile-amy.jpg";
-import profileShawna from "@/assets/profile-shawna.jpg";
-import profileTonya from "@/assets/profile-tonya.jpg";
 import { userdata } from "@/lib/apis";
 import toast, { Toaster } from "react-hot-toast";
 

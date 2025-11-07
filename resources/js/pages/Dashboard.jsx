@@ -13,7 +13,6 @@ import DashboardBanner from "@/components/DashboardBanner";
 import LandingPageEditor from "@/components/LandingPageEditor";
 import MembershipCard from "@/components/MembershipCard";
 import PaymentModal from "@/components/PaymentModal";
-import profileAmy from "@/assets/profile-amy.jpg";
 import { usePage } from "@inertiajs/react";
 import { membershipPlans } from "@/lib/apis";
 
@@ -41,7 +40,7 @@ const Dashboard = (userData) => {
     tier: userData?.user?.tier_name || null,
     views: user?.views || 0,
     featured: user?.featured || 0,
-    image: profileAmy
+    image: '/assets/profile-amy.jpg'
   });
 
   // Parse JSON string from API
