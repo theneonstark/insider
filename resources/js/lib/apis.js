@@ -25,6 +25,16 @@ export const Login = async (data) => {
     }
 };
 
+export const searchData = async () => {
+    try{
+        const res = await axios.get('/region')
+        return res;
+    }catch(err){
+        console.error(err);
+        throw err;
+    }
+}
+
 export const updateProfile = async (data) => {
     try{
         const response = await axios.post('/auth/update', {data});

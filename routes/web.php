@@ -19,6 +19,7 @@ Route::get('/', function () {
 Route::get('login', [UserController::class, 'loginpage'])->middleware('guest');
 Route::get('signup', [UserController::class, 'signup'])->name('signup');
 Route::post('/register', [UserController::class, 'register']);
+Route::get('/region', [HomeController::class, 'data']);
 
 Route::group(['prefix' => 'auth'], function () {
     Route::post('check', [UserController::class, 'login'])->name('authCheck');
@@ -26,6 +27,7 @@ Route::group(['prefix' => 'auth'], function () {
     Route::post('reset', [UserController::class, 'passwordReset'])->name('authReset');
     Route::post('/update', [HomeController::class, 'updateProfile']);
 });
+
 
 Route::group(['middleware'=>'auth'], function () {
     Route::get('/dashboard', [HomeController::class, 'index']);

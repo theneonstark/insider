@@ -2,44 +2,81 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
+import { useState } from "react";
 
-const SearchFilters = ({ onSearch }) => {
+const SearchFilters = ({ industries = [], regions = [], onSearch }) => {
+  
+  const [name, setName] = useState("");
+  const [location, setLocation] = useState("");
+  const [industry, setIndustry] = useState("");
+
+  const handleSearch = () => {
+    onSearch?.({ name, location: location || undefined, industry: industry || undefined });
+  };
+
   return (
     <div className="bg-card p-6 rounded-2xl shadow-[var(--shadow-soft)] space-y-4">
-      <Input 
-        type="text" 
-        placeholder="Search by name" 
+      {/* Name Input */}
+      <Input
+        type="text"
+        placeholder="Search by name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
         className="w-full"
       />
-      
+
+      {/* Dropdowns */}
       <div className="grid md:grid-cols-2 gap-4">
-        <Select>
+        {/* Location Select */}
+        <Select value={location} onValueChange={setLocation}>
           <SelectTrigger>
             <SelectValue placeholder="Select Location" />
           </SelectTrigger>
           <SelectContent className="bg-popover">
-            <SelectItem value="new-york">New York</SelectItem>
-            <SelectItem value="los-angeles">Los Angeles</SelectItem>
-            <SelectItem value="chicago">Chicago</SelectItem>
-            <SelectItem value="houston">Houston</SelectItem>
+            {regions.length > 0 ? (
+              regions.map((region) => (
+                <SelectItem
+                  key={region.regionId}
+                  value={region.regionId.toString()} // must be non-empty string
+                >
+                  {region.regionName}
+                </SelectItem>
+              ))
+            ) : (
+              <div className="p-2 text-sm text-muted-foreground">
+                No locations available
+              </div>
+            )}
           </SelectContent>
         </Select>
-        
-        <Select>
+
+        {/* Industry Select */}
+        <Select value={industry} onValueChange={setIndustry}>
           <SelectTrigger>
             <SelectValue placeholder="Select Industry" />
           </SelectTrigger>
           <SelectContent className="bg-popover">
-            <SelectItem value="marketing">Marketing</SelectItem>
-            <SelectItem value="tech">Technology</SelectItem>
-            <SelectItem value="creative">Creative Services</SelectItem>
-            <SelectItem value="consulting">Consulting</SelectItem>
+            {industries.length > 0 ? (
+              industries.map((ind) => (
+                <SelectItem
+                  key={ind.industryId}
+                  value={ind.industryId.toString()} // must be non-empty string
+                >
+                  {ind.industryName}
+                </SelectItem>
+              ))
+            ) : (
+              <div className="p-2 text-sm text-muted-foreground">
+                No industries available
+              </div>
+            )}
           </SelectContent>
         </Select>
       </div>
-      
-      <Button 
-        onClick={onSearch}
+
+      {/* Search Button */}
+      <Button
+        onClick={handleSearch}
         className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
       >
         <Search className="w-4 h-4 mr-2" />

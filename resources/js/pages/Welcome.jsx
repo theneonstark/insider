@@ -10,8 +10,12 @@ import profileAmy from "@/assets/profile-amy.jpg";
 import profileShawna from "@/assets/profile-shawna.jpg";
 import profileTonya from "@/assets/profile-tonya.jpg";
 import { Link } from "@inertiajs/react";
+import { useEffect, useState } from "react";
+import { searchData } from "@/lib/apis";
 
 const Welcome = () => {
+  const [filters, setFilters] = useState({ industry: [], region: [] });
+  const [loading, setLoading] = useState(true);
   const membershipTiers = [
     {
       title: "She Shine",
@@ -49,6 +53,30 @@ const Welcome = () => {
     { name: "Tonya D.", title: "Business Coach", tier: "Sparkle", image: profileTonya, views: 156 }
   ];
 
+  useEffect(() => {
+    const loadFilters = async () => {
+      try {
+        const result = await searchData();
+        
+        if (result.status) {
+          setFilters({
+            industry: result?.data?.industry || [],
+            region: result?.data?.region || []
+          });
+        }
+      } catch (err) {
+        console.error("Filters load nahi hue:", err);
+        // fallback empty arrays
+        setFilters({ industry: [], region: [] });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadFilters();
+  }, []);
+  
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -65,7 +93,7 @@ const Welcome = () => {
                 Join a community of ambitious women and amplify your visibility while opening doors for new opportunities.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link to="/signup">
+                <Link href="/signup">
                   <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-[var(--shadow-card)] w-full sm:w-auto">
                     Join the Community
                   </Button>
@@ -135,7 +163,16 @@ const Welcome = () => {
           </div>
           
           <div className="max-w-3xl mx-auto mb-12">
-            <SearchFilters />
+            {/* Yaha filters pass kar rahe hain */}
+            {loading ? (
+              <div className="text-center py-4">Loading filters...</div>
+            ) : (
+              <SearchFilters 
+                industries={filters.industry} 
+                regions={filters.region} 
+                onSearch={(filters) => console.log("Searching:", filters)} 
+              />
+            )}
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">

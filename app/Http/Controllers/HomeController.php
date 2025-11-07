@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Industry;
 use App\Models\Offer;
+use App\Models\Region;
 use App\Models\Service;
 use App\Models\Testimonial;
 use App\Models\Tier;
@@ -16,43 +18,49 @@ use Inertia\Inertia;
 
 class HomeController
 {
-public function index(Request $request)
-{
-    $user = $request->user();
+    public function index(Request $request)
+    {
+        $user = $request->user();
 
-    if (!$user) {
-        return redirect()->route('login');
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $tierName = DB::table('tiers')
+            ->where('id', $user->tier_id)
+            ->value('tier_name');
+
+        $authUser = [
+            'id'             => $user->id,
+            'name'           => $user->name,
+            'email'          => $user->email,
+            'phone'          => $user->phone,
+            'business_type'  => $user->business_type,
+            'dob'            => $user->dob,                    // Auto formatted
+            'state'          => $user->state,
+            'bio'            => $user->bio,
+            'tier_id'        => $user->tier_id,
+            'tier_name'      => $tierName ?? 'Free Plan',
+            'views'          => $user->views,
+            'image'          => $user->image ? asset('storage/' . $user->image) : null,
+            'about'          => $user->about,
+            'featured'       => $user->featured,              // boolean
+            'featured_valid' => $user->featured_valid,        // Auto formatted
+            'status'         => $user->status ? 'Active' : 'Inactive',
+            'created_at'     => $user->created_at,            // Auto formatted
+            'updated_at'     => $user->updated_at,            // Auto formatted
+        ];
+
+        return Inertia::render('Dashboard', [
+            'user' => $authUser,
+        ]);
     }
 
-    $tierName = DB::table('tiers')
-        ->where('id', $user->tier_id)
-        ->value('tier_name');
-
-    $authUser = [
-        'id'             => $user->id,
-        'name'           => $user->name,
-        'email'          => $user->email,
-        'phone'          => $user->phone,
-        'business_type'  => $user->business_type,
-        'dob'            => $user->dob,                    // Auto formatted
-        'state'          => $user->state,
-        'bio'            => $user->bio,
-        'tier_id'        => $user->tier_id,
-        'tier_name'      => $tierName ?? 'Free Plan',
-        'views'          => $user->views,
-        'image'          => $user->image ? asset('storage/' . $user->image) : null,
-        'about'          => $user->about,
-        'featured'       => $user->featured,              // boolean
-        'featured_valid' => $user->featured_valid,        // Auto formatted
-        'status'         => $user->status ? 'Active' : 'Inactive',
-        'created_at'     => $user->created_at,            // Auto formatted
-        'updated_at'     => $user->updated_at,            // Auto formatted
-    ];
-
-    return Inertia::render('Dashboard', [
-        'user' => $authUser,
-    ]);
-}
+    public function data(){
+        $regionData = Region::all();
+        $industryData = Industry::all();
+        return response()->json(['status' => true, 'region' => $regionData, 'industry' => $industryData]);
+    }
 
     public function updateProfile(Request $request)
     {
