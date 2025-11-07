@@ -1,11 +1,5 @@
-# Enable rewrite engine
 RewriteEngine On
-
-# Redirect all requests to /public folder
-RewriteCond %{REQUEST_URI} !^/project_insider/public/
-RewriteRule ^(.*)$ project_insider/public/$1 [L,QSA]
-
-# Handle PHP (use only one handler)
-<IfModule mime_module>
-  AddHandler application/x-httpd-ea-php83 .php .php8 .phtml
-</IfModule>
+RewriteCond %{REQUEST_URI} !^/project_insider/public/ [NC]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ /project_insider/public/$1 [L,QSA]
