@@ -12,6 +12,7 @@ import ProfileViewModal from "@/components/ProfileViewModal";
 import EditProfileModal from "@/components/EditProfileModal";
 import { userdata } from "@/lib/apis";
 import toast, { Toaster } from "react-hot-toast";
+import AddUserModal from "@/components/AddUserModal";
 
 const Admin = () => {
   const [activeSection, setActiveSection] = useState("overview");
