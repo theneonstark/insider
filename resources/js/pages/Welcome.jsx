@@ -4,11 +4,6 @@ import Footer from "@/components/Footer";
 import MembershipCard from "@/components/MembershipCard";
 import MemberCard from "@/components/MemberCard";
 import SearchFilters from "@/components/SearchFilters";
-import heroImage from "@/assets/hero-women.jpg";
-import storyImage from "@/assets/story-section.jpg";
-import profileAmy from "@/assets/profile-amy.jpg";
-import profileShawna from "@/assets/profile-shawna.jpg";
-import profileTonya from "@/assets/profile-tonya.jpg";
 import { Link } from "@inertiajs/react";
 import { useEffect, useState } from "react";
 import { searchData } from "@/lib/apis";
@@ -48,9 +43,9 @@ const Welcome = () => {
   ];
   
   const dummyMembers = [
-    { name: "Amy A.", title: "Marketing Expert", tier: "Sparkle", image: profileAmy, views: 124 },
-    { name: "Shawna A.", title: "Creative Director", tier: "Shine", image: profileShawna, views: 89 },
-    { name: "Tonya D.", title: "Business Coach", tier: "Sparkle", image: profileTonya, views: 156 }
+    { name: "Amy A.", title: "Marketing Expert", tier: "Sparkle", image: "/assets/profile-amy.jpg", views: 124 },
+    { name: "Shawna A.", title: "Creative Director", tier: "Shine", image: "/assets/profile-shawna.jpg", views: 89 },
+    { name: "Tonya D.", title: "Business Coach", tier: "Sparkle", image: "/assets/profile-tonya.jpg", views: 156 }
   ];
 
   useEffect(() => {
@@ -105,7 +100,7 @@ const Welcome = () => {
             </div>
             <div className="animate-scale-in">
               <img 
-                src={heroImage} 
+                src={'/assets/hero-women.jpg'} 
                 alt="Two confident women entrepreneurs" 
                 className="rounded-3xl shadow-[var(--shadow-soft)] w-full"
               />
@@ -130,7 +125,7 @@ const Welcome = () => {
             </div>
             <div className="order-1 md:order-2">
               <img 
-                src={storyImage} 
+                src={'/assets/story-section.jpg'} 
                 alt="Women collaborating" 
                 className="rounded-3xl shadow-[var(--shadow-soft)] w-full"
               />

@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import logo from "@/assets/logo.png";
 import { Link, usePage } from "@inertiajs/react";
 
 const Navbar = () => {
@@ -12,7 +11,7 @@ const Navbar = () => {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center">
-            <img src={logo} alt="Insiders Index" className="h-12 w-auto" />
+            <img src={'/assets/logo.png'} alt="Insiders Index" className="h-12 w-auto" />
           </Link>
           
           <div className="hidden md:flex items-center gap-8">
