@@ -1,5 +1,14 @@
 RewriteEngine On
-RewriteCond %{REQUEST_URI} !^/public/ [NC]
-RewriteCond %{REQUEST_FILENAME} !-f
+
+# Optional: redirect trailing slashes
+RewriteCond %{REQUEST_URI} /(.+)/$
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ /public/$1 [L,QSA]
+RewriteRule ^ %1 [R=301,L]
+
+# Skip real files and directories
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Route everything else to /public/
+RewriteRule ^(.*)$ public/$1 [L,QSA]
