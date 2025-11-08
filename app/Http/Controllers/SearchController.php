@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -14,54 +15,37 @@ class SearchController
 
     public function search(Request $request)
     {
-        $name = $request->input('name');
-        $location = $request->input('location');
-        $industry = $request->input('industry');
+        try {
+            // 🧠 Base query: exclude admins
+            $query = User::query()->where('role', '!=', 'admin');
 
-        // 🧠 Base query
-        $query = \App\Models\User::query();
+            // 🧠 Optional filters
+            if ($request->filled('name')) {
+                $query->where('name', 'like', '%' . $request->name . '%');
+            }
 
-        // 🔍 Filter by name (partial match)
-        if (!empty($name)) {
-            $query->where('name', 'like', '%' . $name . '%');
-        }
+            if ($request->filled('location')) {
+                $query->where('location', 'like', '%' . $request->location . '%');
+            }
 
-        // 📍 Filter by location (state or region)
-        if (!empty($location)) {
-            $query->whereHas('region', function ($q) use ($location) {
-                $q->where('regionName', 'like', '%' . $location . '%');
-            })
-                ->orWhere('state', 'like', '%' . $location . '%'); // fallback if region relation not used
-        }
+            if ($request->filled('industry')) {
+                $query->where('industry', 'like', '%' . $request->industry . '%');
+            }
 
-        // 🏭 Filter by industry
-        if (!empty($industry)) {
-            $query->whereHas('industry', function ($q) use ($industry) {
-                $q->where('industryName', 'like', '%' . $industry . '%');
-            })
-                ->orWhere('business_type', 'like', '%' . $industry . '%'); // fallback if column directly on user
-        }
+            // 🧠 Fetch results
+            $users = $query->get();
 
-        // 🧾 Fetch results
-        $results = $query->where('status', 1) // optional: only active users
-            ->select('id', 'name', 'email', 'state', 'business_type', 'image')
-            ->latest()
-            ->get();
-
-        // 🎯 Response
-        if ($results->isEmpty()) {
+            return response()->json([
+                'status' => true,
+                'count' => $users->count(),
+                'data' => $users
+            ], 200);
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
-                'message' => 'No results found',
-                'data' => [],
-            ], 200);
+                'message' => 'Error fetching users',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Results found',
-            'count' => $results->count(),
-            'data' => $results,
-        ], 200);
     }
 }

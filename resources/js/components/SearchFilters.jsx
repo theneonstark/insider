@@ -9,24 +9,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { useState } from "react";
-import { filter } from "@/lib/apis"; // ✅ import your API
 import toast from "react-hot-toast";
 
-const SearchFilters = ({ industries = [], regions = [], onResults }) => {
+const SearchFilters = ({ industries = [], regions = [], onSearch }) => {
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [industry, setIndustry] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSearch = async () => {
-    // 🧠 Prepare payload
     const payload = {
       name: name.trim() || undefined,
       location: location || undefined,
       industry: industry || undefined,
     };
 
-    // 🚀 Validate empty search
     if (!payload.name && !payload.location && !payload.industry) {
       toast.error("Please enter at least one filter to search.");
       return;
@@ -34,15 +31,7 @@ const SearchFilters = ({ industries = [], regions = [], onResults }) => {
 
     try {
       setIsLoading(true);
-      const res = await filter(payload);
-
-      if (res.data.status && res.data.data?.length > 0) {
-        toast.success(`${res.data.count} results found`);
-        onResults?.(res.data.data); // send results to parent
-      } else {
-        toast.error("No results found.");
-        onResults?.([]); // empty results
-      }
+      onSearch?.(payload); // ✅ Directly send filters to parent
     } catch (error) {
       console.error("Search failed:", error);
       toast.error("Something went wrong while searching.");
@@ -53,7 +42,6 @@ const SearchFilters = ({ industries = [], regions = [], onResults }) => {
 
   return (
     <div className="bg-card p-6 rounded-2xl shadow-[var(--shadow-soft)] space-y-4">
-      {/* Name Input */}
       <Input
         type="text"
         placeholder="Search by name"
@@ -62,9 +50,7 @@ const SearchFilters = ({ industries = [], regions = [], onResults }) => {
         className="w-full"
       />
 
-      {/* Dropdowns */}
       <div className="grid md:grid-cols-2 gap-4">
-        {/* Location Select */}
         <Select value={location} onValueChange={setLocation}>
           <SelectTrigger>
             <SelectValue placeholder="Select Location" />
@@ -72,10 +58,7 @@ const SearchFilters = ({ industries = [], regions = [], onResults }) => {
           <SelectContent className="bg-popover">
             {regions.length > 0 ? (
               regions.map((region) => (
-                <SelectItem
-                  key={region.regionId}
-                  value={region.regionName} // ✅ send region name instead of ID
-                >
+                <SelectItem key={region.regionId} value={region.regionName}>
                   {region.regionName}
                 </SelectItem>
               ))
@@ -87,7 +70,6 @@ const SearchFilters = ({ industries = [], regions = [], onResults }) => {
           </SelectContent>
         </Select>
 
-        {/* Industry Select */}
         <Select value={industry} onValueChange={setIndustry}>
           <SelectTrigger>
             <SelectValue placeholder="Select Industry" />
@@ -95,10 +77,7 @@ const SearchFilters = ({ industries = [], regions = [], onResults }) => {
           <SelectContent className="bg-popover">
             {industries.length > 0 ? (
               industries.map((ind) => (
-                <SelectItem
-                  key={ind.industryId}
-                  value={ind.industryName} // ✅ send industry name instead of ID
-                >
+                <SelectItem key={ind.industryId} value={ind.industryName}>
                   {ind.industryName}
                 </SelectItem>
               ))
@@ -111,7 +90,6 @@ const SearchFilters = ({ industries = [], regions = [], onResults }) => {
         </Select>
       </div>
 
-      {/* Search Button */}
       <Button
         onClick={handleSearch}
         disabled={isLoading}

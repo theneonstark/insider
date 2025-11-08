@@ -3,37 +3,67 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SearchFilters from "@/components/SearchFilters";
 import MemberCard from "@/components/MemberCard";
-import { Data } from "@/lib/apis"; // ✅ for industry & region
+import { Data, filter } from "@/lib/apis"; // your APIs
 import toast from "react-hot-toast";
 
 const Search = () => {
-  const [members, setMembers] = useState([]); // 🧠 search results
+  const [members, setMembers] = useState([]);
   const [dropdownData, setDropdownData] = useState({ industry: [], region: [] });
   const [loading, setLoading] = useState(true);
+  const [searching, setSearching] = useState(false);
 
-  // 🟢 Fetch dropdown data (industry & region)
+  // 🧠 Fetch filters + all members on mount
   useEffect(() => {
-    const fetchDropdowns = async () => {
+    const fetchData = async () => {
       try {
-        const res = await Data();
+        const res = await Data(); // industries + regions
         if (res.status === 200 && res.data.status === true) {
           setDropdownData({
             industry: res.data.industry || [],
             region: res.data.region || [],
           });
-        } else {
-          toast.error("Failed to load filters");
+        }
+
+        // 🧠 Get all users (default load)
+        const allRes = await filter({});
+        if (allRes.status === 200 && allRes.data.status) {
+          const users = allRes.data.data || [];
+          const nonAdmins = users.filter((u) => u.role !== "admin"); // 🔥 remove admins
+          setMembers(nonAdmins);
         }
       } catch (error) {
-        console.error("Dropdown fetch error:", error);
-        toast.error("Unable to load filters");
+        console.error("Error loading data:", error);
+        toast.error("Failed to load users");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchDropdowns();
+    fetchData();
   }, []);
+
+  // 🧠 Handle search filters
+  const handleSearchResults = async (filters) => {
+  setSearching(true);
+  try {
+    const res = await filter(filters);
+    if (res.status === 200 && res.data.status) {
+      const users = res.data.data || [];
+      const nonAdmins = users.filter((u) => u.role !== "admin");
+      setMembers(nonAdmins);
+
+      toast.success(`${nonAdmins.length} result${nonAdmins.length > 1 ? "s" : ""} found`);
+    } else {
+      setMembers([]);
+      toast.error("No results found");
+    }
+  } catch (error) {
+    console.error("Search error:", error);
+    toast.error("Search failed");
+  } finally {
+    setSearching(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-background">
@@ -45,45 +75,45 @@ const Search = () => {
             Find a Superstar
           </h1>
           <p className="text-center text-lg text-muted-foreground mb-12">
-            Search Results
+            Search members by name, location, or industry
           </p>
 
-          {/* 🧭 Filters */}
+          {/* 🔽 Search Filters */}
           <div className="max-w-3xl mx-auto mb-12">
             {loading ? (
-              <div className="text-center py-10 text-muted-foreground">
+              <div className="text-center py-10 text-muted-foreground animate-pulse">
                 Loading filters...
               </div>
             ) : (
               <SearchFilters
                 industries={dropdownData.industry}
                 regions={dropdownData.region}
-                onResults={(data) => setMembers(data)} // 👈 real search results
+                onSearch={handleSearchResults}
               />
             )}
           </div>
 
-          {/* 🧩 Results */}
-          {members.length > 0 ? (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* 🧾 Results */}
+          {loading || searching ? (
+            <div className="text-center py-20 text-muted-foreground animate-pulse">
+              {loading ? "Loading users..." : "Searching..."}
+            </div>
+          ) : members.length > 0 ? (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 transition-all duration-300">
               {members.map((member, index) => (
                 <MemberCard
                   key={index}
                   name={member.name}
                   title={member.business_type || "No title"}
                   tier={member.tier || "Member"}
-                  image={
-                    member.image
-                      ? `${import.meta.env.VITE_APP_URL}/${member.image}`
-                      : "/assets/default-profile.png"
-                  }
+                  image={member.image ? member.image : "/assets/default-profile.png"}
                   views={member.views || 0}
                 />
               ))}
             </div>
           ) : (
             <div className="text-center text-muted-foreground py-20">
-              No members found. Try a different search.
+              No members found. Try another filter.
             </div>
           )}
         </div>

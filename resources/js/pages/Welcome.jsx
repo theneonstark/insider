@@ -6,8 +6,10 @@ import MemberCard from "@/components/MemberCard";
 import SearchFilters from "@/components/SearchFilters";
 import { Link, usePage } from "@inertiajs/react";
 import { useEffect, useState } from "react";
-import { Data, membershipPlans } from "@/lib/apis";
+import { Data, filter, membershipPlans } from "@/lib/apis";
 import toast, { Toaster } from "react-hot-toast";
+import PaymentModal from "@/components/PaymentModal";
+import WelcomeMemberCard from "@/components/WelcomeMemberCard";
 
 const Welcome = () => {
   const { props } = usePage(); // if using Inertia
@@ -15,6 +17,10 @@ const Welcome = () => {
 
   const [filters, setFilters] = useState({ industry: [], region: [] });
   const [loading, setLoading] = useState(true);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [selectedTier, setSelectedTier] = useState(null);
+  const [members, setMembers] = useState([]);
+  const [searching, setSearching] = useState(false);
   const membershipTiers = [
     {
       title: "She Shine",
@@ -112,6 +118,61 @@ const Welcome = () => {
 
     loadFilters();
   }, []);
+
+  useEffect(() => {
+    const loadInitialData = async () => {
+      try {
+        const result = await Data();
+        if (result.status) {
+          setFilters({
+            industry: result?.data?.industry || [],
+            region: result?.data?.region || [],
+          });
+        }
+
+        // 🧠 Fetch all users (excluding admins)
+        const res = await filter({});
+        if (res.status === 200 && res.data.status) {
+          const users = res.data.data.filter((u) => u.role !== "admin");
+          setMembers(users);
+        }
+      } catch (error) {
+        console.error("Error loading data:", error);
+        toast.error("Failed to load members");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadInitialData();
+  }, []);
+
+  // 🧠 Handle Search Filters
+  const handleSearch = async (searchFilters) => {
+    setSearching(true);
+    try {
+      const res = await filter(searchFilters);
+      if (res.status === 200 && res.data.status) {
+        const users = res.data.data.filter((u) => u.role !== "admin");
+        setMembers(users);
+
+        if (users.length > 0) {
+          toast.success(`${users.length} result${users.length > 1 ? "s" : ""} found`);
+        } else {
+          toast.error("No results found");
+        }
+      }
+    } catch (error) {
+      console.error("Search failed:", error);
+      toast.error("Search failed. Please try again.");
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleJoinTier = (tier) => {
+    setSelectedTier(tier);
+    setPaymentModalOpen(true);
+  };
   
 
   return (
@@ -177,41 +238,43 @@ const Welcome = () => {
       </section>
 
       {/* Membership Tiers */}
-      <section className="py-20 bg-muted">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-heading mb-4 text-foreground">
-            Your Stage, Your Story
-          </h2>
-          <p className="text-lg text-muted-foreground">
-            Choose the plan that fits your journey
-          </p>
-        </div>
+      {!user?.tier_id && (
+        <section className="py-20 bg-muted">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-heading mb-4 text-foreground">
+                Your Stage, Your Story
+              </h2>
+              <p className="text-lg text-muted-foreground">
+                Choose the plan that fits your journey
+              </p>
+            </div>
 
-        {loading ? (
-          <div className="text-center text-muted-foreground py-12">
-            Loading plans...
+            {loading ? (
+              <div className="text-center text-muted-foreground py-12">
+                Loading plans...
+              </div>
+            ) : plans.length > 0 ? (
+              <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                {plans.map((tier, index) => (
+                  <MembershipCard
+                    key={index}
+                    title={tier.title || tier.name}
+                    price={`$${tier.price} / year`}
+                    features={tier.features || []}
+                    highlighted={tier.highlighted || false}
+                    onJoin={() => handleJoinTier(tier)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center text-muted-foreground py-12">
+                No plans available.
+              </div>
+            )}
           </div>
-        ) : plans.length > 0 ? (
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {plans.map((tier, index) => (
-              <MembershipCard
-                key={index}
-                title={tier.title || tier.name}
-                price={`$${tier.price} / year`}
-                features={tier.features || []}
-                highlighted={tier.highlighted || false}
-                onJoin={() => console.log("Join clicked", tier)}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center text-muted-foreground py-12">
-            No plans available.
-          </div>
-        )}
-      </div>
-    </section>
+        </section>
+      )}
 
       {/* Search & Listing */}
       <section className="py-20 bg-background">
@@ -220,25 +283,33 @@ const Welcome = () => {
             <h2 className="text-4xl font-heading mb-4 text-foreground">Find a Superstar</h2>
             <p className="text-lg text-muted-foreground">Use the filters below to search by name, location, or industry</p>
           </div>
-          
+
           <div className="max-w-3xl mx-auto mb-12">
-            {/* Yaha filters pass kar rahe hain */}
             {loading ? (
               <div className="text-center py-4">Loading filters...</div>
             ) : (
-              <SearchFilters 
-                industries={filters.industry} 
-                regions={filters.region} 
-                onSearch={(filters) => console.log("Searching:", filters)} 
+              <SearchFilters
+                industries={filters.industry}
+                regions={filters.region}
+                onSearch={handleSearch}
               />
             )}
           </div>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            {dummyMembers.map((member, index) => (
-              <MemberCard key={index} {...member} />
-            ))}
-          </div>
+
+          {/* 🧾 Search Results */}
+          {searching ? (
+            <div className="text-center py-8 text-muted-foreground">Searching members...</div>
+          ) : members.length > 0 ? (
+            <div className="grid md:grid-cols-3 gap-8">
+              {members.map((member, index) => (
+                <WelcomeMemberCard key={index} {...member} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-muted-foreground py-8">
+              No members found. Try another filter.
+            </div>
+          )}
         </div>
       </section>
 
@@ -337,6 +408,12 @@ const Welcome = () => {
 
       <Footer />
       <Toaster/>
+
+      <PaymentModal
+        isOpen={paymentModalOpen}
+        onClose={() => setPaymentModalOpen(false)}
+        tier={selectedTier}
+      />
     </div>
   );
 };
