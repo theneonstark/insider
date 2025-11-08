@@ -64,7 +64,6 @@ class UserController
         }
     }
 
-
     public function signup()
     {
         return Inertia::render('Signup');
@@ -99,5 +98,11 @@ class UserController
         Auth::guard()->logout();
         $request->session()->invalidate();
         return Inertia::location('/');
+    }
+
+    public function allUsers(){
+        $allUser = User::all();
+
+        return response()->json(['status'=>'success', 'data'=>$allUser]);
     }
 }

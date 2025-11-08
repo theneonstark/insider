@@ -30,14 +30,22 @@ class HomeController
             ->where('id', $user->tier_id)
             ->value('tier_name');
 
+        $industryName = DB::table('industries')
+            ->where('industryId', $user->business_type)
+            ->value('industryName');
+
+        $regionName = DB::table('regions')
+            ->where('regionId', $user->state)
+            ->value('regionName');
+
         $authUser = [
             'id'             => $user->id,
             'name'           => $user->name,
             'email'          => $user->email,
             'phone'          => $user->phone,
-            'business_type'  => $user->business_type,
+            'business_type'  => $industryName ?? Null,
             'dob'            => $user->dob,                    // Auto formatted
-            'state'          => $user->state,
+            'state'          => $regionName ?? Null,
             'bio'            => $user->bio,
             'tier_id'        => $user->tier_id,
             'tier_name'      => $tierName ?? 'Free Plan',
@@ -56,7 +64,8 @@ class HomeController
         ]);
     }
 
-    public function data(){
+    public function data()
+    {
         $regionData = Region::all();
         $industryData = Industry::all();
         return response()->json(['status' => true, 'region' => $regionData, 'industry' => $industryData]);
@@ -72,19 +81,19 @@ class HomeController
             ], 401);
         }
 
-        // Get request data
+        // Handle JSON or FormData
         $data = $request->has('data') ? $request->input('data') : $request->all();
 
-        // Validate
+        // Validate inputs
         $validator = Validator::make($data, [
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,' . $user->id, // allow same user email
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
             'phone' => 'nullable|string|max:20',
-            'businessType' => 'nullable|string|max:100',
-            'state' => 'nullable|string|max:100',
+            'businessId' => 'nullable|int|max:100',
+            'stateId' => 'nullable|int|max:100',
             'dob' => 'nullable|date',
             'bio' => 'nullable|string|max:1000',
-            'image' => 'nullable|url|max:255',
+            'image' => 'nullable|file|mimes:jpg,jpeg,png', // file validation
         ]);
 
         if ($validator->fails()) {
@@ -95,18 +104,34 @@ class HomeController
         }
 
         try {
-            // Update or Create user record
+            $imagePath = $user->image; // default existing image
+
+            // 🟢 Handle image upload if file is present
+            if ($request->hasFile('image')) {
+                $file = $request->file('image');
+
+                // Create a unique filename
+                $fileName = 'profile_' . time() . '.' . $file->getClientOriginalExtension();
+
+                // Store the file in storage/app/public/profile_images/
+                $path = $file->storeAs('profile_images', $fileName, 'public');
+
+                // Convert storage path to accessible URL or relative path
+                $imagePath = 'storage/profile_images/' . $fileName;
+            }
+
+            // 🟢 Update or Create user record
             $updatedUser = \App\Models\User::updateOrCreate(
-                ['id' => $user->id], // condition
+                ['id' => $user->id],
                 [
                     'name' => $data['name'],
                     'email' => $data['email'],
                     'phone' => $data['phone'] ?? null,
-                    'business_type' => $data['businessType'] ?? null,
-                    'state' => $data['state'] ?? null,
+                    'business_type' => $data['businessId'] ?? null,
+                    'state' => $data['stateId'] ?? null,
                     'dob' => $data['dob'] ?? null,
                     'bio' => $data['bio'] ?? null,
-                    'image' => $data['image'] ?? null,
+                    'image' => $imagePath, // save uploaded file path
                 ]
             );
 
@@ -122,6 +147,90 @@ class HomeController
             ], 500);
         }
     }
+
+    public function featureActive(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Unauthorized access',
+            ], 401);
+        }
+
+        // 🧠 Validate user input
+        $validated = $request->validate([
+            'days' => 'required|integer|min:1|max:365', // limit max 1 year
+        ]);
+
+        try {
+            // If already active & still valid → block reactivation
+            if ($user->featured && $user->featured_valid && now()->lt($user->featured_valid)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Feature is already active until ' . $user->featured_valid->format('d M Y H:i'),
+                ], 400);
+            }
+
+            // ⏳ Calculate new expiry
+            $expiry = now()->addDays($validated['days']);
+
+            // 🟢 Update user table
+            $user->update([
+                'featured' => 1,
+                'featured_valid' => $expiry,
+            ]);
+
+            return response()->json([
+                'status' => true,
+                'message' => "Feature activated for {$validated['days']} days",
+                'featured_valid_until' => $expiry->format('Y-m-d H:i:s'),
+            ], 200);
+        } catch (\Exception $e) {
+            \Log::error('Feature activation failed: ' . $e->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to activate feature',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function updatePassword(Request $request)
+{
+    $user = Auth::user();
+
+    if (!$user) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Unauthorized access',
+        ], 401);
+    }
+
+    // 🧠 Validate input
+    $validated = $request->validate([
+        'current_password' => 'required',
+        'new_password' => 'required|min:8|confirmed', // must have new_password_confirmation field
+    ]);
+
+    // 🧩 Check current password
+    if (!\Hash::check($validated['current_password'], $user->password)) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Current password is incorrect',
+        ], 400);
+    }
+
+    // 🟢 Update password
+    $user->password = \Hash::make($validated['new_password']);
+    $user->save();
+
+    return response()->json([
+        'status' => true,
+        'message' => 'Password updated successfully',
+    ], 200);
+}
 
 
     public function updateLandingPage(Request $request)

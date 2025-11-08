@@ -17,12 +17,14 @@ class User extends Authenticatable
         'business_type',
         'dob',
         'state',
-        'dob',
         'bio',
         'tier_id',
         'views',
         'image',
         'about',
+        'role',
+        'featured',
+        'featured_valid',
         'password',
         'status',
     ];
@@ -31,6 +33,20 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    protected $casts = [
+        'featured' => 'boolean',
+    ];
+
+    public function region()
+    {
+        return $this->belongsTo(Region::class, 'state', 'regionId');
+    }
+
+    public function industry()
+    {
+        return $this->belongsTo(Industry::class, 'business_type', 'industryId');
+    }
 
     public function tier()
     {

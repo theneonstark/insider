@@ -25,7 +25,7 @@ export const Login = async (data) => {
     }
 };
 
-export const searchData = async () => {
+export const Data = async () => {
     try{
         const res = await axios.get('/region')
         return res;
@@ -35,15 +35,26 @@ export const searchData = async () => {
     }
 }
 
-export const updateProfile = async (data) => {
-    try{
-        const response = await axios.post('/auth/update', {data});
-        return response;
-    }catch(err){
-        console.error('Something went wrong',err);
-        throw err;
+export const updateProfile = async (data, isFileUpload = false) => {
+  try {
+    let response;
+
+    if (isFileUpload) {
+      // 🟢 For file uploads
+      response = await axios.post("/auth/update", data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    } else {
+      // 🟡 For normal JSON payload
+      response = await axios.post("/auth/update", { data });
     }
-}
+
+    return response;
+  } catch (err) {
+    console.error("Something went wrong", err);
+    throw err;
+  }
+};
 
 export const updateLandingPage = async(data) => {
     try{
@@ -75,6 +86,35 @@ export const membershipPlans = async() => {
     }
 }
 
+export const getFeatured = async(data) => {
+    try{
+        const res = await axios.post('/featured', data);
+        return res;
+    }catch(err){
+        console.error(err);
+        throw err;
+    }
+}
+
+export const updatePassword = async(data) => {
+    try{
+        const res = await axios.post('/auth/passwordChange', data);
+        return res;
+    }catch(err){
+        console.error(err);
+        throw err;
+    }
+}
+
+export const filter = async(data) => {
+    try{
+        const res = await axios.post('/search/filter', data);
+        return res;
+    }catch(err){
+        console.error(err);
+        throw err;
+    }
+}
 
 
 // Admin APIs

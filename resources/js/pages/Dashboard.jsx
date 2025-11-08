@@ -13,13 +13,15 @@ import DashboardBanner from "@/components/DashboardBanner";
 import LandingPageEditor from "@/components/LandingPageEditor";
 import MembershipCard from "@/components/MembershipCard";
 import PaymentModal from "@/components/PaymentModal";
+import FeatureActivationModal from "@/components/FeatureActivationModal";
 import { usePage } from "@inertiajs/react";
-import { membershipPlans } from "@/lib/apis";
+import { membershipPlans, updatePassword } from "@/lib/apis";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import toast from "react-hot-toast";
 
 const Dashboard = (userData) => {
   const { props } = usePage();
   const user = props.auth?.user;
-  console.log(userData?.user?.tier_name);
   
 
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -28,20 +30,87 @@ const Dashboard = (userData) => {
   const [plans, setPlans] = useState([]);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [selectedTier, setSelectedTier] = useState(null);
+  const [activationModalOpen, setActivationModalOpen] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const planOrder = ["Twinkle", "Sparkle", "Shine"];
+
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const getUpgradeOptions = () => {
+  if (!userProfile?.tier || userProfile.tier.toLowerCase() === "free") {
+    return plans; // show all plans if free or none
+  }
+
+  const currentIndex = planOrder.findIndex(
+    (p) => p.toLowerCase() === userProfile.tier.toLowerCase()
+  );
+
+  // Show only higher tiers
+  return plans.filter((plan) => {
+    const planIndex = planOrder.findIndex(
+      (p) => p.toLowerCase() === plan.title.toLowerCase()
+    );
+    return planIndex > currentIndex;
+  });
+};
+
+const handlePasswordChange = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error("New passwords do not match");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const res = await updatePassword({
+        current_password: currentPassword,
+        new_password: newPassword,
+        new_password_confirmation: confirmPassword,
+      });
+
+      if (res.data.status) {
+        toast.success(res.data.message || "Password updated successfully!");
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        toast.error(res.data.message || "Failed to update password");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   const [userProfile, setUserProfile] = useState({
     name: user?.name || "Guest User",
     email: user?.email || "guest@example.com",
     phone: user?.phone || "",
-    businessType: user?.business_type || "",
-    state: user?.state || "",
+    businessId: user?.business_type  || "",
+    businessType: userData?.user?.business_type  || "",
+    stateId: user?.state || "",
+    state: userData?.user?.state || "",
     dob: user?.dob || "",
     bio: user?.bio || "",
     tier: userData?.user?.tier_name || null,
     views: user?.views || 0,
-    featured: user?.featured || 0,
-    image: '/assets/profile-amy.jpg'
+    featured: user?.featured,
+    featured_valid: user?.featured_valid,
+    image: user?.image
   });
+  
 
   // Parse JSON string from API
   const parseFeatures = (featureStr) => {
@@ -97,6 +166,7 @@ const Dashboard = (userData) => {
   const getCurrentPlan = () => {
     return plans.find(plan => plan.title === userProfile.tier);
   };
+  
 
   const renderContent = () => {
     switch (activeSection) {
@@ -147,7 +217,31 @@ const Dashboard = (userData) => {
                 <CardContent>
                   <div className="text-2xl font-bold">{userProfile.featured ? "Yes" : "No"}</div>
                   <p className="text-xs text-muted-foreground">
-                    {userProfile.featured ? "Active this month" : "Upgrade to get featured"}
+                    {userProfile.featured ? (
+                      (() => {
+                        const date = new Date(userProfile.featured_valid);
+                        const formattedDate = date.toLocaleDateString("en-GB", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        });
+
+                        const today = new Date();
+                        const diffTime = date - today;
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                        return (
+                          <span>
+                            Expires on <strong>{formattedDate}</strong>
+                            {diffDays > 0
+                              ? ` · ${diffDays} day${diffDays > 1 ? "s" : ""} left`
+                              : " · Expired"}
+                          </span>
+                        );
+                      })()
+                    ) : (
+                      "Upgrade to get featured"
+                    )}
                   </p>
                 </CardContent>
               </Card>
@@ -209,69 +303,117 @@ const Dashboard = (userData) => {
       case "membership":
         return (
           <div className="space-y-6">
-            {!userProfile.tier ? (
-              <>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Choose Your Membership Plan</CardTitle>
-                    <CardDescription>Select a plan to unlock exclusive features</CardDescription>
-                  </CardHeader>
-                </Card>
-
-                {/* Show loading or plans */}
-                {plans.length > 0 ? (
-                  <div className="grid md:grid-cols-3 gap-6">
-                    {plans.map((tier) => (
-                      <MembershipCard
-                        key={tier.id}
-                        title={tier.title}
-                        price={tier.price}
-                        features={tier.features}
-                        highlighted={tier.highlighted}
-                        onJoin={() => handleJoinTier(tier)}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <p className="text-muted-foreground">Loading membership plans...</p>
-                  </div>
-                )}
-              </>
-            ) : (
+            {!userProfile.tier || userProfile.tier.toLowerCase() === "free plan" ? (
+            <>
               <Card>
                 <CardHeader>
-                  <CardTitle>Your Membership</CardTitle>
-                  <CardDescription>Manage your subscription and benefits</CardDescription>
+                  <CardTitle>Choose Your Membership Plan</CardTitle>
+                  <CardDescription>Select a plan to unlock exclusive features</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="p-4 bg-muted rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-lg">{userProfile.tier}</h3>
-                      <Badge className="bg-primary text-primary-foreground">Active</Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      {getCurrentPlan()?.price || "N/A"}
-                    </p>
-                    <ul className="space-y-2 text-sm">
-                      {getCurrentPlan()?.features?.length > 0 ? (
-                        getCurrentPlan().features.map((feature, idx) => (
-                          <li key={idx}>Check {feature}</li>
-                        ))
-                      ) : (
-                        <li className="text-muted-foreground">No features listed</li>
-                      )}
-                    </ul>
-                  </div>
-                  <div className="flex gap-3">
-                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                      Upgrade Plan
-                    </Button>
-                    <Button variant="outline">Manage Subscription</Button>
-                  </div>
-                </CardContent>
               </Card>
-            )}
+
+              {/* Show loading or plans */}
+              {plans.length > 0 ? (
+                <div className="grid md:grid-cols-3 gap-6">
+                  {plans.map((tier) => (
+                    <MembershipCard
+                      key={tier.id}
+                      title={tier.title}
+                      price={tier.price}
+                      features={tier.features}
+                      highlighted={tier.highlighted}
+                      onJoin={() => handleJoinTier(tier)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">Loading membership plans...</p>
+                </div>
+              )}
+            </>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Your Membership</CardTitle>
+                <CardDescription>Manage your subscription and benefits</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-4 bg-muted rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-lg">{userProfile.tier}</h3>
+                    <Badge className="bg-primary text-primary-foreground">Active</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {getCurrentPlan()?.price || "N/A"}
+                  </p>
+                  <ul className="space-y-2 text-sm">
+                    {getCurrentPlan()?.features?.length > 0 ? (
+                      getCurrentPlan().features.map((feature, idx) => (
+                        <li key={idx}>✔ {feature}</li>
+                      ))
+                    ) : (
+                      <li className="text-muted-foreground">No features listed</li>
+                    )}
+                  </ul>
+                </div>
+                <div className="flex gap-3">
+                  {getUpgradeOptions().length > 0 ? (
+                    <>
+                      <Button
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                        onClick={() => setShowUpgrade(true)}
+                      >
+                        Upgrade Plan
+                      </Button>
+
+                      {/* Upgrade Modal */}
+                      <Dialog open={showUpgrade} onOpenChange={setShowUpgrade}>
+                        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                          <DialogHeader>
+                            <DialogTitle className="text-2xl font-heading text-center">
+                              Upgrade Your Plan
+                            </DialogTitle>
+                            <p className="text-sm text-muted-foreground text-center">
+                              You’re currently on <strong>{userProfile.tier}</strong> plan — select a higher tier to unlock more benefits.
+                            </p>
+                          </DialogHeader>
+
+                          <div className="grid md:grid-cols-3 gap-6 mt-6">
+                            {getUpgradeOptions().map((tier) => (
+                              <MembershipCard
+                                key={tier.id}
+                                title={tier.title}
+                                price={tier.price}
+                                features={tier.features}
+                                highlighted={tier.highlighted}
+                                onJoin={() => {
+                                  handleJoinTier(tier);
+                                  setShowUpgrade(false); // close modal after joining
+                                }}
+                              />
+                            ))}
+                          </div>
+
+                          <div className="pt-6 flex justify-center">
+                            <Button variant="outline" onClick={() => setShowUpgrade(false)}>
+                              Close
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </>
+                  ) : (
+                    <Button disabled className="opacity-60 cursor-not-allowed">
+                      You’re already on the highest plan
+                    </Button>
+                  )}
+
+                  {/* <Button variant="outline">Manage Subscription</Button> */}
+                </div>
+              </CardContent>
+            </Card>
+          )}
           </div>
         );
 
@@ -305,72 +447,163 @@ const Dashboard = (userData) => {
         );
 
       case "featured":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Featured Status</CardTitle>
-              <CardDescription>Your featured member benefits</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="p-6 bg-accent rounded-lg text-center">
-                <Award className="w-16 h-16 mx-auto mb-4 text-accent-foreground" />
-                <h3 className="font-semibold text-xl mb-2">
-                  {userProfile.tier ? "You're Featured!" : "Upgrade to Get Featured!"}
-                </h3>
-                <p className="text-sm mb-4">
-                  {userProfile.tier
-                    ? "Your profile is highlighted across the platform"
-                    : "Get priority placement and visibility"}
-                </p>
-                {userProfile.tier && <Badge className="bg-accent-foreground text-accent">Active</Badge>}
-              </div>
-            </CardContent>
-          </Card>
-        );
+      return (
+        <Card>
+          <CardHeader>
+            <CardTitle>Featured Status</CardTitle>
+            <CardDescription>Your featured member benefits</CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            <div className="p-6 bg-accent rounded-lg text-center">
+              <Award className="w-16 h-16 mx-auto mb-4 text-accent-foreground" />
+
+              <h3 className="font-semibold text-xl mb-2">
+                {Boolean(userProfile.featured)
+                  ? "You're Featured!"
+                  : "Upgrade to Get Featured!"}
+              </h3>
+
+              <p className="text-sm mb-4">
+                {userProfile.featured
+                  ? "Your profile is highlighted across the platform"
+                  : "Get priority placement and visibility"}
+              </p>
+
+              {/* ✅ Button changes dynamically */}
+              <Button
+                onClick={() => !Boolean(userProfile.featured) && setActivationModalOpen(true)}
+                className={`${
+                  Boolean(userProfile.featured)
+                    ? "bg-green-600 hover:bg-green-700 cursor-default"
+                    : "bg-primary hover:bg-primary/90"
+                } text-primary-foreground`}
+                disabled={Boolean(userProfile.featured)}
+              >
+                {Boolean(userProfile.featured) ? "Activated" : "Activate"}
+              </Button>
+
+              {/* ✅ Expiry Info (only if featured active) */}
+              {userProfile.featured && userProfile.featured_valid && (
+                (() => {
+                  const date = new Date(userProfile.featured_valid);
+                  const formattedDate = date.toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  });
+                  const today = new Date();
+                  const diffTime = date - today;
+                  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                  return (
+                    <p
+                      className={`text-sm mt-3 ${
+                        diffDays <= 0
+                          ? "text-red-500"
+                          : diffDays <= 3
+                          ? "text-yellow-500"
+                          : "text-muted-foreground"
+                      }`}
+                    >
+                      Expires on <strong>{formattedDate}</strong>
+                      {diffDays > 0
+                        ? ` · ${diffDays} day${diffDays > 1 ? "s" : ""} left`
+                        : " · Expired"}
+                    </p>
+                  );
+                })()
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      );
+
 
       case "settings":
         return (
           <Card>
             <CardHeader>
               <CardTitle>Account Settings</CardTitle>
-              <CardDescription>Manage your account preferences and security</CardDescription>
+              <CardDescription>
+                Manage your account preferences and security
+              </CardDescription>
             </CardHeader>
+
             <CardContent className="space-y-6">
+              {/* 🧾 Account Info */}
               <div className="space-y-4">
                 <h3 className="font-semibold">Account Information</h3>
                 <div>
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" defaultValue={userProfile.email} />
+                  <Input
+                    id="email"
+                    type="email"
+                    defaultValue={userProfile.email}
+                    disabled
+                  />
                 </div>
               </div>
 
+              {/* 🔒 Change Password */}
               <div className="space-y-4 pt-4 border-t">
                 <h3 className="font-semibold">Change Password</h3>
+
                 <div>
                   <Label htmlFor="current-password">Current Password</Label>
-                  <Input id="current-password" type="password" placeholder="Enter current password" />
+                  <Input
+                    id="current-password"
+                    type="password"
+                    placeholder="Enter current password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                  />
                 </div>
+
                 <div>
                   <Label htmlFor="new-password">New Password</Label>
-                  <Input id="new-password" type="password" placeholder="Enter new password" />
+                  <Input
+                    id="new-password"
+                    type="password"
+                    placeholder="Enter new password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
                 </div>
+
                 <div>
                   <Label htmlFor="confirm-password">Confirm New Password</Label>
-                  <Input id="confirm-password" type="password" placeholder="Confirm new password" />
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    placeholder="Confirm new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
                 </div>
-                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                  Update Password
+
+                <Button
+                  onClick={handlePasswordChange}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Updating..." : "Update Password"}
                 </Button>
               </div>
 
+              {/* 🔔 Notifications Section (unchanged) */}
               <div className="space-y-4 pt-4 border-t">
                 <h3 className="font-semibold">Notifications</h3>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Email Notifications</p>
-                    <p className="text-sm text-muted-foreground">Receive updates via email</p>
+                    <p className="text-sm text-muted-foreground">
+                      Receive updates via email
+                    </p>
                   </div>
-                  <Button variant="outline" size="sm">Configure</Button>
+                  <Button variant="outline" size="sm">
+                    Configure
+                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -460,6 +693,11 @@ const Dashboard = (userData) => {
         isOpen={paymentModalOpen}
         onClose={() => setPaymentModalOpen(false)}
         tier={selectedTier}
+      />
+
+      <FeatureActivationModal 
+        open={activationModalOpen} 
+        onOpenChange={setActivationModalOpen}
       />
     </div>
   );

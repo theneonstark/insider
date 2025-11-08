@@ -18,7 +18,7 @@ const Navbar = () => {
             <Link href="/" className="text-foreground hover:text-primary transition-colors">
               Home
             </Link>
-            <Link href="/" className="text-foreground hover:text-primary transition-colors">
+            <Link href="/search" className="text-foreground hover:text-primary transition-colors">
               Find Members
             </Link>
           </div>

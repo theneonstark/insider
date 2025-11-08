@@ -6,6 +6,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\UserController;
 use Illuminate\Foundation\Application;
@@ -20,12 +21,14 @@ Route::get('login', [UserController::class, 'loginpage'])->middleware('guest');
 Route::get('signup', [UserController::class, 'signup'])->name('signup');
 Route::post('/register', [UserController::class, 'register']);
 Route::get('/region', [HomeController::class, 'data']);
+Route::get('/allUser', [UserController::class, 'allUsers']);
 
 Route::group(['prefix' => 'auth'], function () {
     Route::post('check', [UserController::class, 'login'])->name('authCheck');
     Route::get('/logout', [UserController::class, 'logout'])->name('logout');
     Route::post('reset', [UserController::class, 'passwordReset'])->name('authReset');
     Route::post('/update', [HomeController::class, 'updateProfile']);
+    Route::post('/passwordChange', [HomeController::class, 'updatePassword']);
 });
 
 
@@ -37,6 +40,13 @@ Route::group(['middleware'=>'auth'], function () {
     Route::group(['prefix' => 'membership'], function () {
         Route::get('/plans', [MemberController::class, 'index']);
     });
+    
+    Route::group(['prefix' => 'search'], function () {
+        Route::get('/', [SearchController::class, 'index']);
+        Route::post('/filter', [SearchController::class, 'search']);
+    });
+    
+    Route::post('/featured', [HomeController::class, 'featureActive']);
 
     Route::get('/checkout', [PaymentController::class, 'index'])->name('checkout');
     Route::post('/create-payment-intent', [PaymentController::class, 'createPaymentIntent']);
