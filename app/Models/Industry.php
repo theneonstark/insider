@@ -12,7 +12,7 @@ class Industry extends Model
     protected $table = 'industries';
 
     protected $fillable = [
-        'idustryName',
+        'industryName',
         'status',
     ];
 

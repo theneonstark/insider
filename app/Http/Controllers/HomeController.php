@@ -376,4 +376,35 @@ class HomeController
     }
 
     public function MembershipPlans() {}
+
+
+    public function increaseView(Request $request)
+    {
+        try {
+            // 🧠 Validate input
+            $request->validate([
+                'id' => 'required|integer|exists:users,id'
+            ]);
+
+            // 🧠 Find user by ID
+            $user = User::findOrFail($request->id);
+
+            // 🧠 Increment view count
+            $user->views = $user->views + 1;
+            $user->save();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'View increased successfully',
+                'views' => $user->views
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to increase view',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
 }

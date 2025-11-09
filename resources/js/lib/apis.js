@@ -86,6 +86,16 @@ export const membershipPlans = async() => {
     }
 }
 
+export const increaseView = async (id) => {
+  try {
+    const res = await axios.post("/increase-view", { id });
+    return res.data;
+  } catch (error) {
+    console.error("Error increasing view:", error);
+    throw error;
+  }
+};
+
 export const getFeatured = async(data) => {
     try{
         const res = await axios.post('/featured', data);

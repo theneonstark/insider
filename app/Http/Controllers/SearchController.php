@@ -32,8 +32,16 @@ class SearchController
                 $query->where('industry', 'like', '%' . $request->industry . '%');
             }
 
-            // 🧠 Fetch results
-            $users = $query->get();
+            // 🧠 Check if any filter is applied
+            $hasFilters = $request->filled('name') || $request->filled('location') || $request->filled('industry');
+
+            if ($hasFilters) {
+                // Agar filter hai to saare matching results laao
+                $users = $query->get();
+            } else {
+                // Agar filter nahi hai to 3 random users laao
+                $users = $query->inRandomOrder()->take(3)->get();
+            }
 
             return response()->json([
                 'status' => true,

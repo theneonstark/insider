@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 import MembershipCard from "@/components/MembershipCard";
 import MemberCard from "@/components/MemberCard";
 import SearchFilters from "@/components/SearchFilters";
+import ProfileViewModal from "@/components/ProfileViewModal";
 import { Link, usePage } from "@inertiajs/react";
 import { useEffect, useState } from "react";
 import { Data, filter, membershipPlans } from "@/lib/apis";
@@ -21,6 +22,8 @@ const Welcome = () => {
   const [selectedTier, setSelectedTier] = useState(null);
   const [members, setMembers] = useState([]);
   const [searching, setSearching] = useState(false);
+  const [viewProfileOpen, setViewProfileOpen] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState(null);
   const membershipTiers = [
     {
       title: "She Shine",
@@ -173,6 +176,11 @@ const Welcome = () => {
     setSelectedTier(tier);
     setPaymentModalOpen(true);
   };
+
+  const handleViewProfile = (member) => {
+    setSelectedProfile(member);
+    setViewProfileOpen(true);
+  };
   
 
   return (
@@ -302,7 +310,7 @@ const Welcome = () => {
           ) : members.length > 0 ? (
             <div className="grid md:grid-cols-3 gap-8">
               {members.map((member, index) => (
-                <WelcomeMemberCard key={index} {...member} />
+                <WelcomeMemberCard key={index} {...member} onViewProfile={() => handleViewProfile(member)}/>                
               ))}
             </div>
           ) : (
@@ -320,8 +328,8 @@ const Welcome = () => {
             Meet the Women Who Sparkle
           </h2>
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {dummyMembers.map((member, index) => (
-              <MemberCard key={index} {...member} />
+            {members.map((member, index) => (
+              <WelcomeMemberCard key={index} {...member} onViewProfile={() => handleViewProfile(member)}/>
             ))}
           </div>
         </div>
@@ -337,8 +345,8 @@ const Welcome = () => {
             Recognizing women who shine in the community through active participation and engagement
           </p>
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {dummyMembers.map((member, index) => (
-              <MemberCard key={index} {...member} views={member.views + 50} />
+            {members.map((member, index) => (
+              <WelcomeMemberCard key={index} {...member} views={member.views + 50} onViewProfile={() => handleViewProfile(member)}/>
             ))}
           </div>
         </div>
@@ -413,6 +421,17 @@ const Welcome = () => {
         isOpen={paymentModalOpen}
         onClose={() => setPaymentModalOpen(false)}
         tier={selectedTier}
+      />
+
+      <ProfileViewModal
+        profile={selectedProfile}
+        open={viewProfileOpen}
+        onOpenChange={setViewProfileOpen}
+        onViewIncrement={() => {
+          if (selectedProfile) {
+            setSelectedProfile({...selectedProfile, views: selectedProfile.views});
+          }
+        }}
       />
     </div>
   );

@@ -31,20 +31,21 @@ Route::group(['prefix' => 'auth'], function () {
     Route::post('/passwordChange', [HomeController::class, 'updatePassword']);
 });
 
+Route::group(['prefix' => 'search'], function () {
+    Route::get('/', [SearchController::class, 'index']);
+    Route::post('/filter', [SearchController::class, 'search']);
+});
+Route::group(['prefix' => 'membership'], function () {
+    Route::get('/plans', [MemberController::class, 'index']);
+});
+
+Route::post('/increase-view', [HomeController::class, 'increaseView']);
 
 Route::group(['middleware'=>'auth'], function () {
     Route::get('/dashboard', [HomeController::class, 'index']);
     Route::post('/updatelandingpage', [HomeController::class, 'updateLandingPage']);
     Route::get('/getLandingPage', [HomeController::class, 'getLandingPage']);
-
-    Route::group(['prefix' => 'membership'], function () {
-        Route::get('/plans', [MemberController::class, 'index']);
-    });
     
-    Route::group(['prefix' => 'search'], function () {
-        Route::get('/', [SearchController::class, 'index']);
-        Route::post('/filter', [SearchController::class, 'search']);
-    });
     
     Route::post('/featured', [HomeController::class, 'featureActive']);
 
