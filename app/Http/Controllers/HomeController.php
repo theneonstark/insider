@@ -407,4 +407,25 @@ class HomeController
         }
     }
 
+    public function userProfile(Request $request, $id)
+{
+    // agar user_id param se aaye to use karo, warna URL wala $id
+    $userId = $request->input('user_id') ?? $id;
+
+    // id match karke user + related data fetch karo
+    $user = User::with(['services', 'testimonials', 'offers'])->find($userId);
+
+    if (!$user) {
+        return response()->json([
+            'status' => false,
+            'message' => 'User not found'
+        ], 404);
+    }
+
+    // return inertia page with all related data
+    return Inertia::render('Profile', [
+        'data' => $user
+    ]);
+}
+
 }

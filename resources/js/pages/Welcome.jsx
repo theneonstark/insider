@@ -373,7 +373,7 @@ const Welcome = () => {
             ))}
           </div>
           <div className="text-center mt-12">
-            <Link to="/signup">
+            <Link href="/signup">
               <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
                 Start Your Shine Today
               </Button>
@@ -400,12 +400,12 @@ const Welcome = () => {
           <h2 className="text-4xl font-heading mb-4">It's Your Time to Shine</h2>
           <p className="text-xl mb-8">Join She Shine or She Sparkle today and start your journey</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/signup">
+            <Link href="/signup">
               <Button size="lg" variant="secondary" className="w-full sm:w-auto">
                 Join She Shine
               </Button>
             </Link>
-            <Link to="/signup">
+            <Link href="/signup">
               <Button size="lg" variant="outline" className="bg-transparent border-2 border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary w-full sm:w-auto">
                 Join She Sparkle
               </Button>

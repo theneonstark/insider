@@ -60,4 +60,8 @@ Route::group(['middleware'=>'auth'], function () {
         Route::get('/userdata', [AdminController::class, 'users']);
         Route::post('/usersUpdateAndAdd', [DashboardController::class, 'usersData']);
     });
+
+    Route::group(['prefix' => 'profile'], function () {
+        Route::get('/{id}', [HomeController::class, 'userProfile']);
+    });
 });

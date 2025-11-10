@@ -54,6 +54,21 @@ class User extends Authenticatable
         //                  ↑ Model     ↑ foreign_key  ↑ primary_key
     }
 
+    public function services()
+    {
+        return $this->hasMany(Service::class, 'user_id');
+    }
+
+    public function testimonials()
+    {
+        return $this->hasMany(Testimonial::class, 'user_id');
+    }
+
+    public function offers()
+    {
+        return $this->hasMany(Offer::class, 'user_id');
+    }
+
     public function getUpdatedAtAttribute($value)
     {
         return date('d M y - h:i A', strtotime($value));

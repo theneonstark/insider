@@ -5,6 +5,7 @@ import { Eye } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { increaseView } from "@/lib/apis"; // 👈 import API
+import { Link } from "@inertiajs/react";
 
 const WelcomeMemberCard = ({ id, name, business_type, tier, image, views = 0, onViewProfile }) => {
   const [viewCount, setViewCount] = useState(views);
@@ -80,13 +81,14 @@ const WelcomeMemberCard = ({ id, name, business_type, tier, image, views = 0, on
         </Button>
 
         {/* ❌ Profile disabled */}
-        <Button 
-          size="sm"
-          disabled
-          className="flex-1 bg-primary/50 cursor-not-allowed text-primary-foreground"
-        >
-          Profile
-        </Button>
+        <Link href={`/profile/${id}`}>
+          <Button 
+            size="sm"
+            className="flex-1 bg-primary/50 cursor-not-allowed text-primary-foreground"
+          >
+            Profile
+          </Button>
+        </Link>
       </CardFooter>
     </Card>
   );
