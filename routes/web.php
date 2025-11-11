@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DataController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\PaymentController;
@@ -54,14 +55,20 @@ Route::group(['middleware'=>'auth'], function () {
     // Route::post('/webhook/stripe', StripeWebhookController::class)
     //  ->name('webhook.stripe');
 
-    
+    Route::group(['prefix' => 'profile'], function () {
+        Route::get('/{id}', [HomeController::class, 'userProfile']);
+    });
+
     Route::group(['prefix' => 'admin'], function () {
         Route::get('/dashboard', [DashboardController::class, 'index']);
         Route::get('/userdata', [AdminController::class, 'users']);
         Route::post('/usersUpdateAndAdd', [DashboardController::class, 'usersData']);
-    });
-
-    Route::group(['prefix' => 'profile'], function () {
-        Route::get('/{id}', [HomeController::class, 'userProfile']);
+        Route::get('/revenue', [DataController::class, 'revenue']);
+        Route::get('/revenue-tier', [DataController::class, 'revenueByTier']);
+        Route::group(['prefix' => 'feature'], function () {
+            Route::post('/add', [AdminController::class, 'featureAdd']);
+            Route::post('/remove', [AdminController::class, 'featureRemove']);
+        });
+        Route::post('/setting/update', [AdminController::class, 'settingUpdate']);
     });
 });
