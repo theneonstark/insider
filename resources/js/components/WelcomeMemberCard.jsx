@@ -84,7 +84,7 @@ const WelcomeMemberCard = ({ id, name, business_type, tier, image, views = 0, on
         <Link href={`/profile/${id}`}>
           <Button 
             size="sm"
-            className="flex-1 bg-primary/50 cursor-not-allowed text-primary-foreground"
+            className="flex-1 bg-primary hover:bg-primary/90 cursor-not-allowed text-primary-foreground"
           >
             Profile
           </Button>

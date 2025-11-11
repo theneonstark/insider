@@ -24,42 +24,6 @@ const Welcome = () => {
   const [searching, setSearching] = useState(false);
   const [viewProfileOpen, setViewProfileOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState(null);
-  const membershipTiers = [
-    {
-      title: "She Shine",
-      price: "$25 / month",
-      features: [
-        "Basic listing and visibility",
-        "Access to member chat (limited)",
-        "Add personal details and business info"
-      ]
-    },
-    {
-      title: "She Sparkle",
-      price: "$50 / month",
-      features: [
-        "Priority listing placement",
-        "Unlimited chat access",
-        "Featured badge on profile"
-      ],
-      highlighted: true
-    },
-    {
-      title: "Premium Elite",
-      price: "$200 / year",
-      features: [
-        "Full access to custom landing page editor",
-        "Add services, testimonials, and portfolio",
-        "Top placement and advanced visibility"
-      ]
-    }
-  ];
-  
-  const dummyMembers = [
-    { name: "Amy A.", title: "Marketing Expert", tier: "Sparkle", image: "/assets/profile-amy.jpg", views: 124 },
-    { name: "Shawna A.", title: "Creative Director", tier: "Shine", image: "/assets/profile-shawna.jpg", views: 89 },
-    { name: "Tonya D.", title: "Business Coach", tier: "Sparkle", image: "/assets/profile-tonya.jpg", views: 156 }
-  ];
 
   const [plans, setPlans] = useState([]);
 
@@ -173,8 +137,12 @@ const Welcome = () => {
   };
 
   const handleJoinTier = (tier) => {
-    setSelectedTier(tier);
-    setPaymentModalOpen(true);
+    if(user){
+      setSelectedTier(tier);
+      setPaymentModalOpen(true);
+    }else {
+      window.location.href = '/login';
+    }
   };
 
   const handleViewProfile = (member) => {
@@ -346,7 +314,7 @@ const Welcome = () => {
           </p>
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {members.map((member, index) => (
-              <WelcomeMemberCard key={index} {...member} views={member.views + 50} onViewProfile={() => handleViewProfile(member)}/>
+              <WelcomeMemberCard key={index} {...member} views={member.views} onViewProfile={() => handleViewProfile(member)}/>
             ))}
           </div>
         </div>

@@ -138,3 +138,53 @@ export const userdata = async() => {
         throw err;
     }
 }
+
+export const revenueData = async() => {
+    try{
+        const res = await axios.get('/admin/revenue');
+        return res;
+    }catch(err){
+        console.error(err);
+        throw err;
+    }
+}
+
+export const revenueByTier = async () => {
+  try {
+    const res = await axios.get('/admin/revenue-tier');
+    return res;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+};
+
+export const addFeature = async (userId) => {
+  try {
+    const res = await axios.post('/admin/feature/add', { user_id: userId });
+    return res;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+};
+
+export const removeFeature = async (userId) => {
+  try {
+    const res = await axios.post('/admin/feature/remove', { user_id: userId });
+    return res;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+};
+
+export const updateAdminSettings = async (data) => {
+  try {
+    const res = await axios.post('/admin/setting/update', data);
+    return res;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+};

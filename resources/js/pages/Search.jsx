@@ -5,12 +5,16 @@ import SearchFilters from "@/components/SearchFilters";
 import MemberCard from "@/components/MemberCard";
 import { Data, filter } from "@/lib/apis"; // your APIs
 import toast from "react-hot-toast";
+import ProfileViewModal from "@/components/ProfileViewModal";
+import WelcomeMemberCard from "@/components/WelcomeMemberCard";
 
 const Search = () => {
   const [members, setMembers] = useState([]);
   const [dropdownData, setDropdownData] = useState({ industry: [], region: [] });
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
+  const [viewProfileOpen, setViewProfileOpen] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState(null);
 
   // 🧠 Fetch filters + all members on mount
   useEffect(() => {
@@ -65,6 +69,11 @@ const Search = () => {
   }
 };
 
+const handleViewProfile = (member) => {
+    setSelectedProfile(member);
+    setViewProfileOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -101,14 +110,7 @@ const Search = () => {
           ) : members.length > 0 ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 transition-all duration-300">
               {members.map((member, index) => (
-                <MemberCard
-                  key={index}
-                  name={member.name}
-                  title={member.business_type || "No title"}
-                  tier={member.tier || "Member"}
-                  image={member.image ? member.image : "/assets/default-profile.png"}
-                  views={member.views || 0}
-                />
+                <WelcomeMemberCard key={index} {...member} onViewProfile={() => handleViewProfile(member)} />
               ))}
             </div>
           ) : (
@@ -120,6 +122,16 @@ const Search = () => {
       </section>
 
       <Footer />
+      <ProfileViewModal
+        profile={selectedProfile}
+        open={viewProfileOpen}
+        onOpenChange={setViewProfileOpen}
+        onViewIncrement={() => {
+          if (selectedProfile) {
+            setSelectedProfile({...selectedProfile, views: selectedProfile.views});
+          }
+        }}
+      />
     </div>
   );
 };

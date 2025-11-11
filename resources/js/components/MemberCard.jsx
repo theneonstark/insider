@@ -5,7 +5,7 @@ import { Eye } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
-const MemberCard = ({ name, business_type, tier, image, views = 0 }) => {
+const MemberCard = ({ name, title, tier, image, views = 0 }) => {
   const [viewCount, setViewCount] = useState(views);
   const { toast } = useToast();
   
@@ -36,7 +36,7 @@ const MemberCard = ({ name, business_type, tier, image, views = 0 }) => {
         <div className="flex items-start justify-between mb-2">
           <div>
             <h3 className="font-semibold text-lg">{name}</h3>
-            <p className="text-sm text-muted-foreground">{business_type}</p>
+            <p className="text-sm text-muted-foreground">{title}</p>
           </div>
           <Badge className={tierColors[tier]}>{tier}</Badge>
         </div>
