@@ -173,7 +173,7 @@ const EditProfileModal = ({ profile, open, onOpenChange, onSave }) => {
 
             {/* Region */}
             <div>
-              <Label htmlFor="region">Region</Label>
+              <Label htmlFor="region">State</Label>
               <Select
                 value={formData.stateId ? formData.stateId.toString() : ""}
                 onValueChange={(value) => setFormData({ ...formData, stateId: parseInt(value) })}
@@ -182,7 +182,7 @@ const EditProfileModal = ({ profile, open, onOpenChange, onSave }) => {
                   <SelectValue
                     placeholder={
                       dropdownData.region.find((r) => r.regionId === formData.stateId)?.regionName ||
-                      "-- Select Region --"
+                      "-- Select State --"
                     }
                   />
                 </SelectTrigger>
@@ -215,7 +215,7 @@ const EditProfileModal = ({ profile, open, onOpenChange, onSave }) => {
                 rows={4}
                 value={formData.bio || ""}
                 onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                placeholder="Tell us about yourself and your business..."
+                placeholder="Tell us about yourself and your business in 250 words or less."
               />
             </div>
 

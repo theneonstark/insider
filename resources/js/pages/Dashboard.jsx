@@ -284,7 +284,7 @@ const handlePasswordChange = async () => {
                   <p className="text-lg">{userProfile.email}</p>
                 </div>
                 <div>
-                  <Label>Business Type</Label>
+                  <Label>Industry</Label>
                   <p className="text-lg">{userProfile.businessType || "Not set"}</p>
                 </div>
               </div>
@@ -641,16 +641,16 @@ const handlePasswordChange = async () => {
         <div className="p-6 space-y-4 bg-muted/30">
           <DashboardBanner
             icon="🎉"
-            title="Join Our Community of Women"
-            description="Connect with amazing women entrepreneurs and grow together"
+            title="Become an Insider"
+            description="Be visible to future clients by creating a profile in our directory."
             ctaText="Learn More"
             ctaLink="#"
             gradient="linear-gradient(135deg, #FFE9F2 0%, #FFF3F6 100%)"
           />
           <DashboardBanner
             icon="🍽️"
-            title="Join Our Luncheon Near You"
-            description="Network with local women leaders at our exclusive events"
+            title="Find an in-person event near you"
+            description="Connect with other women in business at an upcoming event"
             ctaText="Find Events"
             ctaLink="#"
             gradient="linear-gradient(135deg, #FFF3F6 0%, #E7C8FF 100%)"

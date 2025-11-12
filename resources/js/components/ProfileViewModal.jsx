@@ -38,21 +38,21 @@ const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement
           {/* Basic Info */}
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-muted-foreground">Full Name</label>
+              <label className="text-sm font-medium text-muted-foreground">Name</label>
               <p className="text-lg font-semibold">{profile.name}</p>
             </div>
             
-            <div>
+            {/* <div>
               <label className="text-sm font-medium text-muted-foreground">Email</label>
               <p className="text-lg">{profile.email}</p>
-            </div>
+            </div> */}
             
-            {profile.phone && (
+            {/* {profile.phone && (
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Phone Number</label>
                 <p className="text-lg">{profile.phone}</p>
               </div>
-            )}
+            )} */}
             
             {profile.businessType && (
               <div>

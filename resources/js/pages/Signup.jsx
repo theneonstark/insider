@@ -90,7 +90,7 @@ const Signup = () => {
             Create Your Account
           </CardTitle>
           <CardDescription>
-            Join the community of ambitious women
+            Become an Insider today!
           </CardDescription>
         </CardHeader>
 

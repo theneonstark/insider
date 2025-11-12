@@ -161,7 +161,7 @@ const Welcome = () => {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="animate-fade-in">
               <h1 className="text-5xl md:text-6xl font-heading mb-6 text-foreground">
-                Connect. Be Seen. Grow Your Business Network.
+                Connect. Be Seen.<br/>Expand Your Network.
               </h1>
               <p className="text-xl text-muted-foreground mb-8">
                 Join a community of ambitious women and amplify your visibility while opening doors for new opportunities.
@@ -172,9 +172,9 @@ const Welcome = () => {
                     Join the Community
                   </Button>
                 </Link>
-                <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                {/* <Button size="lg" variant="outline" className="w-full sm:w-auto">
                   Get Matched
-                </Button>
+                </Button> */}
               </div>
             </div>
             <div className="animate-scale-in">
@@ -196,7 +196,7 @@ const Welcome = () => {
               <h2 className="text-4xl font-heading mb-6 text-foreground">Your Stage, Your Story</h2>
               <p className="text-lg text-muted-foreground mb-6">
                 Insiders Index is your platform to grow, connect, and shine. Participate in events, 
-                network with peers, and showcase your success.
+                connect with business besties, and showcase your success.
               </p>
               <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
                 Join the Movement
@@ -219,10 +219,10 @@ const Welcome = () => {
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-4xl font-heading mb-4 text-foreground">
-                Your Stage, Your Story
+                Become an Insider Today!
               </h2>
               <p className="text-lg text-muted-foreground">
-                Choose the plan that fits your journey
+                Choose your preferred level of visibility.
               </p>
             </div>
 
@@ -307,10 +307,10 @@ const Welcome = () => {
       <section className="py-20 bg-accent">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-heading text-center mb-4 text-accent-foreground">
-            Top Active Queens
+            Top-Tier Insiders
           </h2>
           <p className="text-center text-lg mb-12 text-accent-foreground/80">
-            Recognizing women who shine in the community through active participation and engagement
+            Recognizing women who shine in our community through active participation and engagement
           </p>
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {members.map((member, index) => (
@@ -324,13 +324,13 @@ const Welcome = () => {
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-heading text-center mb-12 text-foreground">
-            Three Simple Steps to Shine
+            Three Simple Steps to Become an Insider
           </h2>
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {[
-              { num: "1", text: "Pick She Shine or She Sparkle plan" },
-              { num: "2", text: "Create your bio, story, services, and testimonials" },
-              { num: "3", text: "Get discovered every day by women after events" }
+              { num: "1", text: "Pick your plan." },
+              { num: "2", text: "Customize your profile." },
+              { num: "3", text: "Get discovered by new clients." }
             ].map((step, index) => (
               <div key={index} className="text-center animate-fade-in">
                 <div className="w-24 h-24 rounded-full bg-primary text-primary-foreground text-4xl font-bold flex items-center justify-center mx-auto mb-6 shadow-[var(--shadow-card)]">
@@ -343,7 +343,7 @@ const Welcome = () => {
           <div className="text-center mt-12">
             <Link href="/signup">
               <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                Start Your Shine Today
+                Become an Insider
               </Button>
             </Link>
           </div>
@@ -365,19 +365,19 @@ const Welcome = () => {
       {/* CTA Band */}
       <section className="py-20 bg-primary text-primary-foreground">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl font-heading mb-4">It's Your Time to Shine</h2>
-          <p className="text-xl mb-8">Join She Shine or She Sparkle today and start your journey</p>
+          <h2 className="text-4xl font-heading mb-4">It's Your Time to Shine!</h2>
+          {/* <p className="text-xl mb-8">Join She Shine or She Sparkle today and start your journey</p> */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/signup">
               <Button size="lg" variant="secondary" className="w-full sm:w-auto">
-                Join She Shine
+                Click here to create your profile.
               </Button>
             </Link>
-            <Link href="/signup">
+            {/* <Link href="/signup">
               <Button size="lg" variant="outline" className="bg-transparent border-2 border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary w-full sm:w-auto">
                 Join She Sparkle
               </Button>
-            </Link>
+            </Link> */}
           </div>
         </div>
       </section>
