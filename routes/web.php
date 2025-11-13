@@ -36,6 +36,13 @@ Route::group(['prefix' => 'search'], function () {
     Route::get('/', [SearchController::class, 'index']);
     Route::post('/filter', [SearchController::class, 'search']);
 });
+
+Route::group(['prefix' => 'data'], function () {
+    Route::get('sparkle', [SearchController::class, 'sparkleUser']);
+    Route::get('shine', [SearchController::class, 'shineUser']);
+    Route::get('shinePlus', [SearchController::class, 'shinePlanUser']);
+});
+
 Route::group(['prefix' => 'membership'], function () {
     Route::get('/plans', [MemberController::class, 'index']);
 });

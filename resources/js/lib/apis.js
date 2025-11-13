@@ -126,6 +126,35 @@ export const filter = async(data) => {
     }
 }
 
+export const sparkleUser = async() => {
+  try{
+    const res = await axios.get('/data/sparkle')
+    return res;
+  }catch(err){
+    console.error(err);
+    throw err;
+  }
+}
+
+export const shineUser = async() => {
+  try{
+    const res = await axios.get('/data/shine')
+    return res;
+  }catch(err){
+    console.error(err);
+    throw err;
+  }
+}
+
+export const shinePlusUser = async() => {
+  try{
+    const res = await axios.get('/data/shinePlus')
+    return res;
+  }catch(err){
+    console.error(err);
+    throw err;
+  }
+}
 
 // Admin APIs
 

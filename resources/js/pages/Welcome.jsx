@@ -7,7 +7,7 @@ import SearchFilters from "@/components/SearchFilters";
 import ProfileViewModal from "@/components/ProfileViewModal";
 import { Link, usePage } from "@inertiajs/react";
 import { useEffect, useState } from "react";
-import { Data, filter, membershipPlans } from "@/lib/apis";
+import { Data, filter, membershipPlans, shinePlusUser, shineUser, sparkleUser } from "@/lib/apis";
 import toast, { Toaster } from "react-hot-toast";
 import PaymentModal from "@/components/PaymentModal";
 import WelcomeMemberCard from "@/components/WelcomeMemberCard";
@@ -24,6 +24,10 @@ const Welcome = () => {
   const [searching, setSearching] = useState(false);
   const [viewProfileOpen, setViewProfileOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState(null);
+  const [sparkleMembers, setSparkleMembers] = useState([]);
+  const [shineMembers, setShineMembers] = useState([]);
+  const [shinePlusMembers, setShinePlusMembers] = useState([]);
+
 
   const [plans, setPlans] = useState([]);
 
@@ -111,6 +115,51 @@ const Welcome = () => {
       }
     };
     loadInitialData();
+  }, []);
+
+  useEffect(() => {
+  const loadSparkle = async () => {
+    try {
+      const res = await sparkleUser();
+      if (res.status === 200) {
+        setSparkleMembers(res.data.data || []);
+      }
+    } catch (err) {
+      console.error("Sparkle users error:", err);
+    }
+  };
+
+  loadSparkle();
+  }, []);
+
+  useEffect(() => {
+  const loadShine = async () => {
+    try {
+      const res = await shineUser();
+      if (res.status === 200) {
+        setShineMembers(res.data.data || []);
+      }
+    } catch (err) {
+      console.error("Sparkle users error:", err);
+    }
+  };
+
+  loadShine();
+  }, []);
+
+  useEffect(() => {
+    const loadShinePlus = async () => {
+      try {
+        const res = await shinePlusUser();
+        if (res.status === 200) {
+          setShinePlusMembers(res.data.data || []);
+        }
+      } catch (err) {
+        console.error("Sparkle users error:", err);
+      }
+    };
+
+    loadShinePlus();
   }, []);
 
   // 🧠 Handle Search Filters
@@ -296,26 +345,60 @@ const Welcome = () => {
             Meet the Women Who Sparkle
           </h2>
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {members.map((member, index) => (
-              <WelcomeMemberCard key={index} {...member} onViewProfile={() => handleViewProfile(member)}/>
-            ))}
+            {sparkleMembers.length > 0 ? (
+              sparkleMembers.map((member, index) => (
+                <WelcomeMemberCard
+                  key={index}
+                  {...member}
+                  onViewProfile={() => handleViewProfile(member)}
+                />
+              ))
+            ) : (
+              <div className="text-center text-muted-foreground col-span-full">
+                No sparkle members found.
+              </div>
+            )}
           </div>
         </div>
       </section>
 
-      {/* Top Active Queens */}
+      {/* Shine Queens */}
       <section className="py-20 bg-accent">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-heading text-center mb-4 text-accent-foreground">
-            Top-Tier Insiders
+            Meet the Women Who Shine
           </h2>
           <p className="text-center text-lg mb-12 text-accent-foreground/80">
             Recognizing women who shine in our community through active participation and engagement
           </p>
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {members.map((member, index) => (
+            {shineMembers.map((member, index) => (
               <WelcomeMemberCard key={index} {...member} views={member.views} onViewProfile={() => handleViewProfile(member)}/>
             ))}
+          </div>
+        </div>
+      </section>
+          
+      {/* Shine Plus Users */}
+      <section className="py-20 bg-secondary">
+        <div className="container mx-auto px-4">
+          <h2 className="text-4xl font-heading text-center mb-12 text-foreground">
+            Top-Tier Insiders
+          </h2>
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {sparkleMembers.length > 0 ? (
+              shinePlusMembers.map((member, index) => (
+                <WelcomeMemberCard
+                  key={index}
+                  {...member}
+                  onViewProfile={() => handleViewProfile(member)}
+                />
+              ))
+            ) : (
+              <div className="text-center text-muted-foreground col-span-full">
+                No sparkle members found.
+              </div>
+            )}
           </div>
         </div>
       </section>

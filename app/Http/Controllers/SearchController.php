@@ -56,4 +56,37 @@ class SearchController
             ], 500);
         }
     }
+
+    public function sparkleUser()
+    {
+        $users = User::where('tier_id', 2)->get()->shuffle();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Sparkle users fetched successfully',
+            'data' => $users,
+        ]);
+    }
+
+    public function shineUser()
+    {
+        $users = User::where('tier_id', 3)->get()->shuffle();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Shine users fetched successfully',
+            'data' => $users,
+        ]);
+    }
+
+    public function shinePlanUser()
+    {
+        $users = User::where('tier_id', 4)->get()->shuffle();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Shine users fetched successfully',
+            'data' => $users,
+        ]);
+    }
 }

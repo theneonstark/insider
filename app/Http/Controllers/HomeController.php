@@ -198,39 +198,39 @@ class HomeController
     }
 
     public function updatePassword(Request $request)
-{
-    $user = Auth::user();
+    {
+        $user = Auth::user();
 
-    if (!$user) {
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Unauthorized access',
+            ], 401);
+        }
+
+        // 🧠 Validate input
+        $validated = $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|min:8|confirmed', // must have new_password_confirmation field
+        ]);
+
+        // 🧩 Check current password
+        if (!\Hash::check($validated['current_password'], $user->password)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Current password is incorrect',
+            ], 400);
+        }
+
+        // 🟢 Update password
+        $user->password = \Hash::make($validated['new_password']);
+        $user->save();
+
         return response()->json([
-            'status' => false,
-            'message' => 'Unauthorized access',
-        ], 401);
+            'status' => true,
+            'message' => 'Password updated successfully',
+        ], 200);
     }
-
-    // 🧠 Validate input
-    $validated = $request->validate([
-        'current_password' => 'required',
-        'new_password' => 'required|min:8|confirmed', // must have new_password_confirmation field
-    ]);
-
-    // 🧩 Check current password
-    if (!\Hash::check($validated['current_password'], $user->password)) {
-        return response()->json([
-            'status' => false,
-            'message' => 'Current password is incorrect',
-        ], 400);
-    }
-
-    // 🟢 Update password
-    $user->password = \Hash::make($validated['new_password']);
-    $user->save();
-
-    return response()->json([
-        'status' => true,
-        'message' => 'Password updated successfully',
-    ], 200);
-}
 
 
     public function updateLandingPage(Request $request)
@@ -408,24 +408,23 @@ class HomeController
     }
 
     public function userProfile(Request $request, $id)
-{
-    // agar user_id param se aaye to use karo, warna URL wala $id
-    $userId = $request->input('user_id') ?? $id;
+    {
+        // agar user_id param se aaye to use karo, warna URL wala $id
+        $userId = $request->input('user_id') ?? $id;
 
-    // id match karke user + related data fetch karo
-    $user = User::with(['services', 'testimonials', 'offers'])->find($userId);
+        // id match karke user + related data fetch karo
+        $user = User::with(['services', 'testimonials', 'offers'])->find($userId);
 
-    if (!$user) {
-        return response()->json([
-            'status' => false,
-            'message' => 'User not found'
-        ], 404);
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        // return inertia page with all related data
+        return Inertia::render('Profile', [
+            'data' => $user
+        ]);
     }
-
-    // return inertia page with all related data
-    return Inertia::render('Profile', [
-        'data' => $user
-    ]);
-}
-
 }
