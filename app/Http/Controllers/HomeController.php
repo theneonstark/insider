@@ -113,11 +113,11 @@ class HomeController
                 // Create a unique filename
                 $fileName = 'profile_' . time() . '.' . $file->getClientOriginalExtension();
 
-                // Store the file in storage/app/public/profile_images/
-                $path = $file->storeAs('profile_images', $fileName, 'public');
+                // Directly move file to public/profile_images/
+                $file->move(public_path('profile_images'), $fileName);
 
-                // Convert storage path to accessible URL or relative path
-                $imagePath = 'storage/profile_images/' . $fileName;
+                // Public URL path
+                $imagePath = 'profile_images/' . $fileName;
             }
 
             // 🟢 Update or Create user record
