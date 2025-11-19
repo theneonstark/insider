@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DataController;
@@ -77,5 +78,13 @@ Route::group(['middleware'=>'auth'], function () {
             Route::post('/remove', [AdminController::class, 'featureRemove']);
         });
         Route::post('/setting/update', [AdminController::class, 'settingUpdate']);
+    });
+    
+    Route::group(['prefix' => 'ads'], function () {
+        Route::get('/data', [AdController::class, 'index']);
+        Route::post('/create', [AdController::class, 'store']);
+        Route::post('/{id}', [AdController::class, 'update']);
+        Route::delete('/{id}', [AdController::class, 'destroy']);
+        Route::post('/{id}/status', [AdController::class, 'updateStatus']);
     });
 });

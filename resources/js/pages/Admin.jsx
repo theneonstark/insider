@@ -5,15 +5,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Users, DollarSign, Award, BarChart3, Bell, Search } from "lucide-react";
+import { Users, DollarSign, Award, BarChart3, Bell, Search, Upload, X } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import AdminSidebar from "@/components/AdminSidebar";
 import ProfileViewModal from "@/components/ProfileViewModal";
 import EditProfileModal from "@/components/EditProfileModal";
-import { addFeature, removeFeature, revenueByTier, revenueData, updateAdminSettings, userdata } from "@/lib/apis";
+import { addFeature, CreateAds, deleteAd, getAds, removeFeature, revenueByTier, revenueData, updateAd, updateAdminSettings, updateAdStatus, userdata } from "@/lib/apis";
 import toast, { Toaster } from "react-hot-toast";
 import AddUserModal from "@/components/AddUserModal";
 import { usePage } from "@inertiajs/react";
+import EditAdModal from "@/components/EditAdModal";
 
 const Admin = () => {
   const [activeSection, setActiveSection] = useState("overview");
@@ -37,6 +38,14 @@ const Admin = () => {
     email: "",
   });
   const [saving, setSaving] = useState(false);
+  const [editAdOpen, setEditAdOpen] = useState(false);
+  const [selectedAd, setSelectedAd] = useState(null);
+  const [newAdImage, setNewAdImage] = useState(null);
+  const [newAdImagePreview, setNewAdImagePreview] = useState(null);
+  const [ads, setAds] = useState([]);
+  const [adTitle, setAdTitle] = useState("");
+  const [adLink, setAdLink] = useState("");
+  const [adActive, setAdActive] = useState(false);
   const { props } = usePage();
   const admin = props.auth?.user; // ✅ Admin data from Inertia props
   
@@ -67,6 +76,93 @@ const Admin = () => {
   }
 };
 
+// AD Fetch
+  useEffect(() => {
+    fetchAds();
+  }, []);
+
+  const fetchAds = async () => {
+    try {
+      const res = await getAds();
+      console.log(res.data.data);
+      
+      if (res.data.status) {
+        setAds(res.data.data);
+      }
+    } catch (error) {
+      console.log("Failed to load ads", error);
+    }
+  };
+
+  // ADD ADs
+  const handleCreateAd = async () => {
+    const form = new FormData();
+    form.append("user_id", admin.id);
+    form.append("title", adTitle);
+    form.append("link", adLink);
+    form.append("active", adActive ? 1 : 0);
+
+    if (newAdImage) {
+      form.append("image", newAdImage);
+    }
+
+    try {
+      const res = await CreateAds(form);
+
+      if (res.data.status) {
+        toast.success("Ad created!");
+
+        fetchAds();
+
+        // reset form
+        setAdTitle("");
+        setAdLink("");
+        setNewAdImage(null);
+        setNewAdImagePreview(null);
+        setAdActive(false);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Ad creation failed");
+    }
+  };
+
+  // Ad active or de-active
+  const handleToggleAdStatus = async (id, active) => {
+    try {
+      const res = await updateAdStatus(id, { active: active ? 1 : 0 });
+
+      if (res.data.status) {
+        toast.success("Status updated");
+
+        setAds(prev =>
+          prev.map(a =>
+            a.id === id ? { ...a, active: active ? 1 : 0 } : a
+          )
+        );
+      }
+    } catch (err) {
+      console.log(err);
+      toast.error("Failed to update status");
+    }
+  };
+
+
+// delete ads
+  const handleDeleteAd = async (ad) => {
+    if (!confirm("Are you sure you want to delete this ad?")) return;
+
+    try {
+      const res = await deleteAd(ad.id);
+      if (res.data.status) {
+        toast.success("Ad deleted");
+        fetchAds(); // reload ads
+      }
+    } catch (err) {
+      console.log(err);
+      toast.error("Failed to delete ad");
+    }
+  };
 
   useEffect(() => {
     fetchUsers();
@@ -189,6 +285,7 @@ const Admin = () => {
     }
   };
 
+
   const handleAdd = async () => {
     const notFeatured = users.filter(u => !u.featured);
     if (notFeatured.length === 0) return toast.error("No available users to feature.");
@@ -209,6 +306,28 @@ const Admin = () => {
     }
   };
 
+  const handleEditAd = (ad) => {
+    setSelectedAd(ad);
+    setEditAdOpen(true);
+  };
+
+  const handleSaveAd = async (id, formData) => {
+  try {
+    const res = await updateAd(id, formData); // <-- FormData
+
+    if (res.data.status) {
+      toast.success("Ad updated");
+
+      // locally update preview list
+      fetchAds();
+    }
+
+  } catch (e) {
+    console.log(e);
+    toast.error("Update failed");
+  }
+};
+
   // 🧠 Handle submit
   const handleSave = async (e) => {
     e.preventDefault();
@@ -223,6 +342,20 @@ const Admin = () => {
       console.error(error);
       toast.error("Something went wrong while saving settings");
     }
+  };
+
+  const handleNewAdImageUpload = (e) => {
+  const file = e.target.files[0];
+
+  if (file) {
+    setNewAdImage(file);  // <-- FILE object
+    setNewAdImagePreview(URL.createObjectURL(file)); 
+  }
+};
+
+  const handleRemoveNewAdImage = () => {
+    setNewAdImagePreview(null);
+    setNewAdImage(null);
   };
 
 
@@ -327,17 +460,77 @@ const Admin = () => {
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="ad-title">Ad Title</Label>
-                  <Input id="ad-title" placeholder="Join our community of women" />
+                  <Input 
+                    id="ad-title"
+                    placeholder="Join our community of women"
+                    value={adTitle}
+                    onChange={(e) => setAdTitle(e.target.value)}
+                  />
                 </div>
                 <div>
                   <Label htmlFor="ad-link">CTA Link</Label>
-                  <Input id="ad-link" placeholder="https://..." />
+                  <Input 
+                    id="ad-link"
+                    placeholder="https://..."
+                    value={adLink}
+                    onChange={(e) => setAdLink(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Ad Image</Label>
+                  <div className="space-y-3">
+                    {newAdImagePreview ? (
+                      <div className="relative rounded-lg overflow-hidden border border-border">
+                        <img 
+                          src={newAdImagePreview} 
+                          alt="Ad preview" 
+                          className="w-full h-48 object-cover"
+                        />
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="destructive"
+                          className="absolute top-2 right-2"
+                          onClick={handleRemoveNewAdImage}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div 
+                        className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors"
+                        onClick={() => document.getElementById('new-ad-image')?.click()}
+                      >
+                        <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">
+                          Click to upload image
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          PNG, JPG up to 5MB
+                        </p>
+                      </div>
+                    )}
+                    <input
+                      id="new-ad-image"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleNewAdImageUpload}
+                    />
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Switch id="ad-active" />
+                  <Switch 
+                    id="ad-active"
+                    checked={adActive}
+                    onCheckedChange={(v) => setAdActive(v)}
+                  />
                   <Label htmlFor="ad-active">Active</Label>
                 </div>
-                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                <Button 
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                  onClick={handleCreateAd}
+                >
                   Save Ad
                 </Button>
               </div>
@@ -345,20 +538,33 @@ const Admin = () => {
               <div className="pt-6 border-t">
                 <h3 className="font-semibold mb-4">Current Ads</h3>
                 <div className="space-y-3">
-                  <div className="p-4 bg-muted rounded-lg flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Join our community of women</p>
-                      <p className="text-sm text-muted-foreground">Active</p>
+                  {ads.map((ad) => (
+                    <div key={ad.id} className="p-4 bg-muted rounded-lg flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">{ad.title}</p>
+                        <p className="font-medium">{ad.description}</p>
+                        <p className="text-sm text-muted-foreground">{ad.active ? "Active" : "Inactive"}</p>
+                      </div>
+                      <div className="space-x-3 flex items-center">
+      
+                        {/* ACTIVE SWITCH */}
+                        <Switch
+                          checked={Boolean(ad.active)}
+                          onCheckedChange={(v) => handleToggleAdStatus(ad.id, v)}
+                        />
+
+                        {/* EDIT BUTTON */}
+                        <Button size="sm" variant="outline" onClick={() => handleEditAd(ad)}>
+                          Edit
+                        </Button>
+
+                        {/* DELETE BUTTON */}
+                        <Button size="sm" variant="destructive" onClick={() => handleDeleteAd(ad)}>
+                          Delete
+                        </Button>
+                      </div>
                     </div>
-                    <Button size="sm" variant="outline">Edit</Button>
-                  </div>
-                  <div className="p-4 bg-muted rounded-lg flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Join our luncheon near you</p>
-                      <p className="text-sm text-muted-foreground">Active</p>
-                    </div>
-                    <Button size="sm" variant="outline">Edit</Button>
-                  </div>
+                  ))}
                 </div>
               </div>
             </CardContent>
@@ -597,6 +803,13 @@ const Admin = () => {
         open={addUserOpen}
         onOpenChange={setAddUserOpen}
         onAddUser={handleAddUser}
+      />
+
+      <EditAdModal
+        ad={selectedAd}
+        open={editAdOpen}
+        onOpenChange={setEditAdOpen}
+        onSave={handleSaveAd}
       />
       <Toaster/>
     </div>

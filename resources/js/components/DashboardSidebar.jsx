@@ -1,5 +1,5 @@
 // import { Link, useLocation } from "react-router-dom";
-import { Home, User, CreditCard, Layout, MessageSquare, Star, Settings, LogOut } from "lucide-react";
+import { Home, User, CreditCard, Layout, MessageSquare, Star, Settings, LogOut, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "@inertiajs/react";
 
@@ -9,6 +9,7 @@ const DashboardSidebar = ({ activeSection, onSectionChange }) => {
     { id: "profile", label: "My Profile", icon: User },
     { id: "membership", label: "Membership Plans", icon: CreditCard },
     { id: "editor", label: "Landing Page Editor", icon: Layout },
+    { id: "ads", label: "Ads Management", icon: BarChart3 },
     { id: "chat", label: "Chat", icon: MessageSquare },
     { id: "featured", label: "Featured", icon: Star },
     { id: "settings", label: "Settings", icon: Settings },

@@ -156,6 +156,16 @@ export const shinePlusUser = async() => {
   }
 }
 
+export const getAds = () => axios.get('/ads/data');
+export const CreateAds = (data) => axios.post('/ads/create', data, {
+    headers: { "Content-Type": "multipart/form-data" }
+  });
+export const updateAd = (id, data) => axios.post(`/ads/${id}`, data, {
+    headers: { "Content-Type": "multipart/form-data" }
+  });
+export const deleteAd = (id) => axios.delete(`/ads/${id}`);
+export const updateAdStatus = (id, data) => axios.post(`/ads/${id}/status`, data);
+
 // Admin APIs
 
 export const userdata = async() => {

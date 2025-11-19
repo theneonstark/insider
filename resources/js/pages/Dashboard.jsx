@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MessageCircle, Eye, Star, Award, Bell, Search } from "lucide-react";
+import { MessageCircle, Eye, Star, Award, Bell, Search, Upload, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import ProfileViewModal from "@/components/ProfileViewModal";
@@ -15,11 +15,17 @@ import MembershipCard from "@/components/MembershipCard";
 import PaymentModal from "@/components/PaymentModal";
 import FeatureActivationModal from "@/components/FeatureActivationModal";
 import { usePage } from "@inertiajs/react";
-import { membershipPlans, updatePassword } from "@/lib/apis";
+import { CreateAds, Data, getAds, membershipPlans, updatePassword } from "@/lib/apis";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import toast from "react-hot-toast";
+import { Textarea } from "@/components/ui/textarea";
+import EditAdModal from "@/components/EditAdModal";
+import { Switch } from "@/components/ui/switch";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Dashboard = (userData) => {
+  // Mock data for all running ads (admin + user ads)
   const { props } = usePage();
   const user = props.auth?.user;
   
@@ -38,6 +44,38 @@ const Dashboard = (userData) => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [editAdOpen, setEditAdOpen] = useState(false);
+  const [selectedAd, setSelectedAd] = useState(null);
+  const [newAdImage, setNewAdImage] = useState(null);
+  const [newAdImagePreview, setNewAdImagePreview] = useState(null);
+  const [runningAds, setRunningAds] = useState([]);
+  const [states, setStates] = useState([]);
+  const [industries, setIndustries] = useState([]);
+  const [formData, setFormData] = useState({
+    state: "",
+    industry: ""
+  });
+  const [adTitle, setAdTitle] = useState("");
+  const [adLink, setAdLink] = useState("");
+  const [adActive, setAdActive] = useState(false);
+
+  useEffect(() => {
+    const fetchFilters = async () => {
+      try {
+        const res = await Data();  // returns { region: [...], industry: [...] }
+
+        if (res.data.status) {
+          setStates(res.data.region || []);
+          setIndustries(res.data.industry || []);
+        }
+
+      } catch (err) {
+        console.log("Failed to load filters", err);
+      }
+    };
+
+    fetchFilters();
+  }, []);
 
   const getUpgradeOptions = () => {
   if (!userProfile?.tier || userProfile.tier.toLowerCase() === "free") {
@@ -166,8 +204,103 @@ const handlePasswordChange = async () => {
   const getCurrentPlan = () => {
     return plans.find(plan => plan.title === userProfile.tier);
   };
+
+  const fetchRunningAds = async () => {
+    try {
+      const res = await getAds();
+
+      if (res.data.status) {
+        setRunningAds(res.data.data);  // all ads from backend
+      }
+
+    } catch (error) {
+      console.log("Failed to fetch running ads", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchRunningAds();
+  }, []);
   
 
+  const [ads, setAds] = useState([
+    { 
+      id: 1, 
+      title: "My Business Promotion", 
+      description: "Promote my services",
+      link: "https://example.com",
+      active: true,
+      image: null
+    }
+  ]);
+
+  const handleEditAd = (ad) => {
+    setSelectedAd(ad);
+    setEditAdOpen(true);
+  };
+
+  const handleSaveAd = (updatedAd) => {
+    setAds(prev => prev.map(a => 
+      a.id === updatedAd.id ? updatedAd : a
+    ));
+  };
+
+  const handleNewAdImageUpload = (e) => {
+    const file = e.target.files?.[0];
+
+    if (file) {
+      setNewAdImage(file); // <-- send FILE to backend
+
+      const url = URL.createObjectURL(file);
+      setNewAdImagePreview(url);
+    }
+  };
+
+  const handleRemoveNewAdImage = () => {
+    setNewAdImagePreview(null);
+    setNewAdImage(null);
+  };
+
+  const handleCreateAd = async () => {
+    const form = new FormData();
+    form.append("user_id", user.id);
+    form.append("title", adTitle);
+    form.append("link", adLink);
+    form.append("active", adActive ? 1 : 0);
+
+    if (formData.state) form.append("region_id", formData.state);
+    if (formData.industry) form.append("industry_id", formData.industry);
+
+    if (newAdImage) {
+      form.append("image", newAdImage);  
+    }
+
+    try {
+      const res = await CreateAds(form);
+
+      if (res.data.status) {
+        toast.success("Ad created!");
+
+        fetchRunningAds();
+
+        setAdTitle("");
+        setAdLink("");
+        setNewAdImage(null);
+        setNewAdImagePreview(null);
+        setAdActive(false);
+        setFormData({ state: "", industry: "" });
+      }
+
+    } catch (err) {
+      console.log(err);
+      toast.error("Ad creation failed");
+    }
+  };
+
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
   const renderContent = () => {
     switch (activeSection) {
       case "dashboard":
@@ -417,6 +550,174 @@ const handlePasswordChange = async () => {
           </div>
         );
 
+      case "ads":
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Ads Management</CardTitle>
+              <CardDescription>Create and manage promotional ads</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="ad-title">Ad Title</Label>
+                  <Input 
+                    id="ad-title"
+                    placeholder="Promote your business"
+                    value={adTitle}
+                    onChange={(e) => setAdTitle(e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="ad-description">Ad Description</Label>
+                  <Textarea id="ad-description" placeholder="Describe your ad..." />
+                </div>
+
+                <div>
+                  <Label htmlFor="ad-link">CTA Link</Label>
+                  <Input 
+                    id="ad-link"
+                    placeholder="https://..."
+                    value={adLink}
+                    onChange={(e) => setAdLink(e.target.value)}
+                  />
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="ad-state">State</Label>
+                    <Select 
+                      value={formData.state} 
+                      onValueChange={(value) => handleInputChange("state", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select State" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-popover">
+                        {states.map((s) => (
+                          <SelectItem key={s.regionId} value={s.regionId.toString()}>
+                            {s.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="ad-industry">Industry</Label>
+                    <Select 
+                      value={formData.industry} 
+                      onValueChange={(value) => handleInputChange("industry", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Industry" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-popover">
+                        {industries.map((i) => (
+                          <SelectItem key={i.industryId} value={i.industryId.toString()}>
+                            {i.industry}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Ad Image</Label>
+                  <div className="space-y-3">
+                    {newAdImagePreview ? (
+                      <div className="relative rounded-lg overflow-hidden border border-border">
+                        <img 
+                          src={newAdImagePreview} 
+                          alt="Ad preview" 
+                          className="w-full h-48 object-cover"
+                        />
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="destructive"
+                          className="absolute top-2 right-2"
+                          onClick={() => {
+                            setNewAdImage(null);
+                            setNewAdImagePreview(null);
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div 
+                        className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors"
+                        onClick={() => document.getElementById('new-ad-image')?.click()}
+                      >
+                        <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">Click to upload image</p>
+                      </div>
+                    )}
+                    <input
+                      id="new-ad-image"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleNewAdImageUpload}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Switch 
+                    id="ad-active"
+                    checked={adActive}
+                    onCheckedChange={setAdActive}
+                  />
+                  <Label htmlFor="ad-active">Active</Label>
+                </div>
+
+                <Button 
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                  onClick={handleCreateAd}
+                >
+                  Save Ad
+                </Button>
+              </div>
+
+              
+              <div className="pt-6 border-t">
+                <h3 className="font-semibold mb-4">Your Ads</h3>
+                <div className="space-y-3">
+                  {ads.map((ad) => (
+                    <div key={ad.id} className="flex items-center gap-4 p-4 bg-muted rounded-lg">
+                      {ad.image && (
+                        <img 
+                          src={ad.image} 
+                          alt={ad.title} 
+                          className="w-16 h-16 object-cover rounded"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <h4 className="font-semibold">{ad.title}</h4>
+                        <p className="text-sm text-muted-foreground">{ad.description}</p>
+                      </div>
+                      <Badge variant={ad.active ? "default" : "secondary"}>
+                        {ad.active ? "Active" : "Inactive"}
+                      </Badge>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleEditAd(ad)}
+                      >
+                        Edit
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+
       case "editor":
         return <LandingPageEditor />;
 
@@ -518,7 +819,6 @@ const handlePasswordChange = async () => {
           </CardContent>
         </Card>
       );
-
 
       case "settings":
         return (
@@ -639,7 +939,7 @@ const handlePasswordChange = async () => {
         </header>
 
         <div className="p-6 space-y-4 bg-muted/30">
-          <DashboardBanner
+          {/* <DashboardBanner
             icon="🎉"
             title="Become an Insider"
             description="Be visible to future clients by creating a profile in our directory."
@@ -654,7 +954,82 @@ const handlePasswordChange = async () => {
             ctaText="Find Events"
             ctaLink="#"
             gradient="linear-gradient(135deg, #FFF3F6 0%, #E7C8FF 100%)"
-          />
+          /> */}
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Active Campaigns</CardTitle>
+              <CardDescription>View all running ads in a carousel</CardDescription>
+            </CardHeader>
+
+            <CardContent>
+              <Carousel className="w-full">
+                <CarouselContent className="-ml-2">
+                  {runningAds.filter(ad => ad.active).map((ad) => (
+                    <CarouselItem key={ad.id} className="pl-2 md:basis-1/2 lg:basis-1/3">
+                      <Card className="p-4 border border-border/60 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex flex-col gap-4">
+
+                          {/* IMAGE */}
+                          {ad.image && (
+                            <div className="w-full h-40 rounded-lg overflow-hidden bg-muted border">
+                              <img
+                                src={ad.image}
+                                alt={ad.title}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          )}
+
+                          {/* TEXT CONTENT */}
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-2">
+                              <h3 className="font-semibold text-foreground truncate">{ad.title}</h3>
+
+                              <Badge variant={ad.createdBy === "admin" ? "default" : "secondary"}>
+                                {ad.createdBy === "admin" ? "Platform" : "User"}
+                              </Badge>
+                            </div>
+
+                            <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                              {ad.description}
+                            </p>
+
+                            {/* TAGS */}
+                            <div className="flex gap-2 flex-wrap mb-2">
+                              {ad.state && (
+                                <Badge variant="outline" className="text-xs">{ad.state}</Badge>
+                              )}
+                              {ad.industry && (
+                                <Badge variant="outline" className="text-xs">{ad.industry}</Badge>
+                              )}
+                            </div>
+
+                            {/* LINK */}
+                            {ad.link && (
+                              <a
+                                href={ad.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm text-primary hover:underline inline-block"
+                              >
+                                Learn More →
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </Card>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+
+                {/* Navigation Buttons */}
+                <CarouselPrevious />
+                <CarouselNext />
+              </Carousel>
+            </CardContent>
+          </Card>
+
         </div>
 
         <main className="flex-1 p-6 overflow-y-auto">
@@ -698,6 +1073,13 @@ const handlePasswordChange = async () => {
       <FeatureActivationModal 
         open={activationModalOpen} 
         onOpenChange={setActivationModalOpen}
+      />
+
+      <EditAdModal
+        ad={selectedAd}
+        open={editAdOpen}
+        onOpenChange={setEditAdOpen}
+        onSave={handleSaveAd}
       />
     </div>
   );
