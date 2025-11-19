@@ -597,7 +597,7 @@ const handlePasswordChange = async () => {
                       <SelectContent className="bg-popover">
                         {states.map((s) => (
                           <SelectItem key={s.regionId} value={s.regionId.toString()}>
-                            {s.name}
+                            {s.regionName}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -616,7 +616,7 @@ const handlePasswordChange = async () => {
                       <SelectContent className="bg-popover">
                         {industries.map((i) => (
                           <SelectItem key={i.industryId} value={i.industryId.toString()}>
-                            {i.industry}
+                            {i.industryName}
                           </SelectItem>
                         ))}
                       </SelectContent>
