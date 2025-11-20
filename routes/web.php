@@ -81,10 +81,10 @@ Route::group(['middleware'=>'auth'], function () {
     });
     
     Route::group(['prefix' => 'ads'], function () {
-        Route::get('/data', [AdController::class, 'index']);
         Route::post('/create', [AdController::class, 'store']);
         Route::post('/{id}', [AdController::class, 'update']);
         Route::delete('/{id}', [AdController::class, 'destroy']);
         Route::post('/{id}/status', [AdController::class, 'updateStatus']);
     });
 });
+Route::get('/ads/data', [AdController::class, 'index']);
