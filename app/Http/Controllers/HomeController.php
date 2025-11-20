@@ -413,7 +413,7 @@ class HomeController
         $userId = $request->input('user_id') ?? $id;
 
         // id match karke user + related data fetch karo
-        $user = User::with(['services', 'testimonials', 'offers'])->find($userId);
+        $user = User::with(['services', 'testimonials', 'offers', 'industry', 'region', 'tier'])->find($userId);
 
         if (!$user) {
             return response()->json([

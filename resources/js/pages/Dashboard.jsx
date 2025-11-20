@@ -38,7 +38,7 @@ const Dashboard = (userData) => {
   const [selectedTier, setSelectedTier] = useState(null);
   const [activationModalOpen, setActivationModalOpen] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
-  const planOrder = ["Twinkle", "Sparkle", "Shine"];
+  const planOrder = ["Twinkle", "Sparkle", "Shine", "Shine Plus"];
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -78,22 +78,23 @@ const Dashboard = (userData) => {
   }, []);
 
   const getUpgradeOptions = () => {
-  if (!userProfile?.tier || userProfile.tier.toLowerCase() === "free") {
-    return plans; // show all plans if free or none
-  }
+    if (!userProfile?.tier || userProfile.tier.toLowerCase() === "free") {
+      return plans; // show all plans if free or none
+    }
 
-  const currentIndex = planOrder.findIndex(
-    (p) => p.toLowerCase() === userProfile.tier.toLowerCase()
-  );
-
-  // Show only higher tiers
-  return plans.filter((plan) => {
-    const planIndex = planOrder.findIndex(
-      (p) => p.toLowerCase() === plan.title.toLowerCase()
+    const currentIndex = planOrder.findIndex(
+      (p) => p.toLowerCase() === userProfile.tier.toLowerCase()
     );
-    return planIndex > currentIndex;
-  });
-};
+
+    // Show only higher tiers
+    return plans.filter((plan) => {
+      const planIndex = planOrder.findIndex(
+        (p) => p.toLowerCase() === plan.title.toLowerCase()
+      );
+      
+      return planIndex > currentIndex;
+    });
+  };
 
 const handlePasswordChange = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
@@ -348,7 +349,7 @@ const handlePasswordChange = async () => {
                   <Award className="w-4 h-4 text-primary" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{userProfile.featured ? "Yes" : "No"}</div>
+                  <div className="text-2xl font-bold">{userProfile.featured ? "Yes" : ""}</div>
                   <p className="text-xs text-muted-foreground">
                     {userProfile.featured ? (
                       (() => {
@@ -373,7 +374,9 @@ const handlePasswordChange = async () => {
                         );
                       })()
                     ) : (
-                      "Upgrade to get featured"
+                      <Button onClick={()=>{setActiveSection('featured')}}>
+                        Upgrade 
+                      </Button>
                     )}
                   </p>
                 </CardContent>

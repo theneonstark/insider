@@ -152,21 +152,21 @@ const LandingPageEditor = () => {
           <Tabs defaultValue="about" className="space-y-6">
             <TabsList className="grid grid-cols-4 w-full">
               <TabsTrigger value="about">About Me</TabsTrigger>
-              <TabsTrigger value="services">Services</TabsTrigger>
+              <TabsTrigger value="services">Products / Services</TabsTrigger>
               <TabsTrigger value="testimonials">Testimonials</TabsTrigger>
               <TabsTrigger value="offers">Offers</TabsTrigger>
             </TabsList>
 
             {/* About Me */}
             <TabsContent value="about" className="space-y-4">
-              <div>
+              {/* <div>
                 <Label>Headline</Label>
                 <Input
                   value={aboutMe.headline || ""}
                   onChange={(e) => setAboutMe({ ...aboutMe, headline: e.target.value })}
                   placeholder="Your professional headline"
                 />
-              </div>
+              </div> */}
               <div>
                 <Label>Bio</Label>
                 <Textarea
@@ -176,20 +176,20 @@ const LandingPageEditor = () => {
                   placeholder="Tell your story..."
                 />
               </div>
-              <div>
+              {/* <div>
                 <Label>Tagline</Label>
                 <Input
                   value={aboutMe.tagline || ""}
                   onChange={(e) => setAboutMe({ ...aboutMe, tagline: e.target.value })}
                   placeholder="Your catchy tagline"
                 />
-              </div>
+              </div> */}
             </TabsContent>
 
             {/* Services */}
             <TabsContent value="services" className="space-y-4">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="font-semibold">Your Services</h3>
+                <h3 className="font-semibold">My Favorite Product / Services</h3>
                 <Button onClick={addService} size="sm" className="gap-2">
                   <Plus className="w-4 h-4" /> Add
                 </Button>
@@ -216,14 +216,14 @@ const LandingPageEditor = () => {
                             placeholder="Describe your service..."
                           />
                         </div>
-                        <div>
+                        {/* <div>
                           <Label>Price</Label>
                           <Input
                             value={service.price}
                             onChange={(e) => updateService(service.id, "price", e.target.value)}
                             placeholder="e.g., $500"
                           />
-                        </div>
+                        </div> */}
                       </div>
                       <Button variant="ghost" size="icon" onClick={() => deleteService(service.id)} className="ml-2 text-destructive">
                         <Trash2 className="w-4 h-4" />
@@ -272,12 +272,12 @@ const LandingPageEditor = () => {
                           />
                         </div>
                         <div>
-                          <Label>Rating</Label>
+                          {/* <Label>Rating</Label> */}
                           <Input
-                            type="number"
+                            type="hidden"
                             min="1"
                             max="5"
-                            value={testimonial.rating}
+                            value={5}
                             onChange={(e) => updateTestimonial(testimonial.id, "rating", e.target.value)}
                           />
                         </div>
@@ -319,14 +319,14 @@ const LandingPageEditor = () => {
                             onChange={(e) => updateOffer(offer.id, "description", e.target.value)}
                           />
                         </div>
-                        <div>
+                        {/* <div>
                           <Label>Valid Until</Label>
                           <Input
                             type="date"
                             value={offer.validUntil || ""}
                             onChange={(e) => updateOffer(offer.id, "validUntil", e.target.value)}
                           />
-                        </div>
+                        </div> */}
                       </div>
                       <Button variant="ghost" size="icon" onClick={() => deleteOffer(offer.id)} className="ml-2 text-destructive">
                         <Trash2 className="w-4 h-4" />

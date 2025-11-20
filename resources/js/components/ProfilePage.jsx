@@ -9,7 +9,6 @@ import Footer from "@/components/Footer";
 import { Link } from "@inertiajs/react";
 
 const ProfilePage = ({ profile }) => {
-//   const navigate = useNavigate();
   if (!profile) return null;
 
   // related data
@@ -45,8 +44,8 @@ const ProfilePage = ({ profile }) => {
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute top-4 right-4">
-                  <Badge className="bg-primary text-primary-foreground shadow-lg">
-                    Tier {profile.tier}
+                  <Badge className="bg-primary text-primary-foreground shadow-lg p-2">
+                    {profile.tier || 'Member'}
                   </Badge>
                 </div>
               </div>
@@ -58,16 +57,20 @@ const ProfilePage = ({ profile }) => {
                     {profile.name}
                   </h1>
 
-                  {profile.headline && (
+                    <div className="flex items-center gap-3 text-2xl text-primary font-semibold mb-3">
+                      <Briefcase className="w-6 h-6" />
+                      <span>{profile.businessType}</span>
+                    </div>
+                  {/* {profile.headline && (
                     <p className="text-2xl text-primary font-semibold mb-3">
                       {profile.headline}
                     </p>
-                  )}
-                  {profile.tagline && (
+                  )} */}
+                  {/* {profile.tagline && (
                     <p className="italic text-muted-foreground mb-3">
                       “{profile.tagline}”
                     </p>
-                  )}
+                  )} */}
 
                   <div className="flex items-center gap-2 text-muted-foreground mb-2">
                     <MapPin className="w-4 h-4" />
@@ -95,21 +98,21 @@ const ProfilePage = ({ profile }) => {
                       <span>{profile.phone}</span>
                     </div>
                   )}
-                  {profile.businessType && (
+                  {/* {profile.businessType && (
                     <div className="flex items-center gap-3 text-foreground">
                       <Briefcase className="w-5 h-5" />
                       <span>Business Type: {profile.businessType}</span>
                     </div>
-                  )}
+                  )} */}
                 </div>
 
-                <Button 
+                {/* <Button 
                   size="lg"
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-hover)] transition-all hover-lift"
                 >
                   <Mail className="w-4 h-4 mr-2" />
                   Let's Connect
-                </Button>
+                </Button> */}
               </CardContent>
             </div>
           </Card>

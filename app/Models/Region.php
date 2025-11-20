@@ -17,6 +17,11 @@ class Region extends Model
         'status',
     ];
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function getUpdatedAtAttribute($value)
     {
         return date('d M y - h:i A', strtotime($value));

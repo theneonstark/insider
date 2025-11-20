@@ -38,14 +38,14 @@ class User extends Authenticatable
         'featured' => 'boolean',
     ];
 
-    public function region()
-    {
-        return $this->belongsTo(Region::class, 'state', 'regionId');
-    }
-
     public function industry()
     {
         return $this->belongsTo(Industry::class, 'business_type', 'industryId');
+    }
+
+    public function region()
+    {
+        return $this->belongsTo(Region::class, 'state', 'regionId');
     }
 
     public function tier()
