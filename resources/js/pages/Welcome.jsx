@@ -7,15 +7,18 @@ import SearchFilters from "@/components/SearchFilters";
 import ProfileViewModal from "@/components/ProfileViewModal";
 import { Link, usePage } from "@inertiajs/react";
 import { useEffect, useState } from "react";
-import { Data, filter, membershipPlans, shinePlusUser, shineUser, sparkleUser } from "@/lib/apis";
+import { Data, filter, getAds, membershipPlans, shinePlusUser, shineUser, sparkleUser } from "@/lib/apis";
 import toast, { Toaster } from "react-hot-toast";
 import PaymentModal from "@/components/PaymentModal";
 import WelcomeMemberCard from "@/components/WelcomeMemberCard";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Badge } from "@/components/ui/badge";
+import Autoplay from "embla-carousel-autoplay";
 
 const Welcome = () => {
   const { props } = usePage(); // if using Inertia
   const user = props.auth?.user; // logged-in user
-
   const [filters, setFilters] = useState({ industry: [], region: [] });
   const [loading, setLoading] = useState(true);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
@@ -30,6 +33,7 @@ const Welcome = () => {
 
 
   const [plans, setPlans] = useState([]);
+  const [runningAds, setRunningAds] = useState([]);
 
   // 🧠 Fetch plans from API
   useEffect(() => {
@@ -198,6 +202,23 @@ const Welcome = () => {
     setSelectedProfile(member);
     setViewProfileOpen(true);
   };
+
+  const fetchRunningAds = async () => {
+    try {
+      const res = await getAds();
+
+      if (res.data.status) {
+        setRunningAds(res.data.data);  // all ads from backend
+      }
+
+    } catch (error) {
+      console.log("Failed to fetch running ads", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchRunningAds();
+  }, []);
   
 
   return (
@@ -444,6 +465,90 @@ const Welcome = () => {
           </div>
         </div>
       </section>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-center">Active Campaigns</CardTitle>
+          <CardDescription className="text-center">View all running ads</CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          <Carousel 
+          className="w-full" 
+          opts={{
+            align: "start",
+            loop: true,
+          }} plugins={[
+            Autoplay({
+              delay: 2000,
+            }),
+          ]}
+          >
+            <CarouselContent className="-ml-2">
+              {runningAds.filter(ad => ad.active).map((ad) => (
+                <CarouselItem key={ad.id} className="pl-2 md:basis-1/2 lg:basis-1/3">
+                  <Card className="p-4 border border-border/60 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex flex-col gap-4">
+
+                      {/* IMAGE */}
+                      {ad.image && (
+                        <div className="w-full h-40 rounded-lg overflow-hidden bg-muted border">
+                          <img
+                            src={ad.image}
+                            alt={ad.title}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+
+                      {/* TEXT CONTENT */}
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="font-semibold text-foreground truncate">{ad.title}</h3>
+
+                          <Badge variant={ad.createdBy === "admin" ? "default" : "secondary"}>
+                            {ad.createdBy === "admin" ? "Platform" : "User"}
+                          </Badge>
+                        </div>
+
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                          {ad.description}
+                        </p>
+
+                        {/* TAGS */}
+                        <div className="flex gap-2 flex-wrap mb-2">
+                          {ad.state && (
+                            <Badge variant="outline" className="text-xs">{ad.state}</Badge>
+                          )}
+                          {ad.industry && (
+                            <Badge variant="outline" className="text-xs">{ad.industry}</Badge>
+                          )}
+                        </div>
+
+                        {/* LINK */}
+                        {ad.link && (
+                          <a
+                            href={ad.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-primary hover:underline inline-block"
+                          >
+                            Learn More →
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+
+            {/* Navigation Buttons */}
+            <CarouselPrevious className="left-2 -translate-x-0" />
+            <CarouselNext className="right-2 translate-x-0" />
+          </Carousel>
+        </CardContent>
+      </Card>
 
       {/* CTA Band */}
       <section className="py-20 bg-primary text-primary-foreground">
