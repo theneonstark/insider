@@ -8,8 +8,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Trash2, Eye, Save } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import { getLandingPage, updateLandingPage } from "@/lib/apis";
+import { usePage } from "@inertiajs/react";
 
 const LandingPageEditor = () => {
+  const {props} = usePage();
+  const user_tier = props.user.tier_name;
+
+
   const [aboutMe, setAboutMe] = useState({});
   const [services, setServices] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
@@ -139,7 +144,8 @@ const LandingPageEditor = () => {
             Customize your personal landing page to showcase your services and expertise
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        {user_tier === 'Shine Plus' ? (
+          <CardContent>
           <div className="flex gap-3 mb-6">
             <Button onClick={handlePreview} variant="outline" className="gap-2">
               <Eye className="w-4 h-4" /> Preview
@@ -338,6 +344,15 @@ const LandingPageEditor = () => {
             </TabsContent>
           </Tabs>
         </CardContent>
+        ) : (
+           <div className="py-10 text-center text-muted-foreground border rounded-lg">
+            <h2 className="text-xl font-semibold mb-2">Upgrade Required</h2>
+            <p className="mb-4">Editing your landing page requires a Shine Plus membership.</p>
+            {/* <Button href="/upgrade" className="bg-primary text-white">
+              Upgrade to Shine Plus
+            </Button> */}
+          </div>
+        )}
       </Card>
     </div>
   );
