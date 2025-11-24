@@ -253,9 +253,9 @@ class HomeController
                 // ----------------------- ABOUT -----------------------
                 case 'about':
                     $validated = validator($data, [
-                        'headline' => 'required|string|max:255',
+                        // 'headline' => 'required|string|max:255',
                         'bio' => 'required|string',
-                        'tagline' => 'nullable|string|max:255',
+                        // 'tagline' => 'nullable|string|max:255',
                     ])->validate();
 
                     $user->update([
@@ -271,7 +271,7 @@ class HomeController
                         $validated = validator($serviceData, [
                             'title' => 'required|string|max:255',
                             'description' => 'required|string',
-                            'price' => 'nullable|string|max:255',
+                            // 'price' => 'nullable|string|max:255',
                         ])->validate();
 
                         \App\Models\Service::updateOrCreate(
@@ -295,7 +295,7 @@ class HomeController
                             'name' => 'required|string|max:255',
                             'role' => 'nullable|string|max:255',
                             'content' => 'required|string',
-                            'rating' => 'nullable|numeric|min:1|max:5',
+                            // 'rating' => 'nullable|numeric|min:1|max:5',
                         ])->validate();
 
                         \App\Models\Testimonial::updateOrCreate(
@@ -319,7 +319,7 @@ class HomeController
                         $validated = validator($offerData, [
                             'title' => 'required|string|max:255',
                             'description' => 'nullable|string',
-                            'validUntil' => 'nullable|date',
+                            // 'validUntil' => 'nullable|date',
                         ])->validate();
 
                         \App\Models\Offer::updateOrCreate(
