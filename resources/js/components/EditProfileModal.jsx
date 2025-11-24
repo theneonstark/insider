@@ -208,7 +208,7 @@ const EditProfileModal = ({ profile, open, onOpenChange, onSave }) => {
             </div>
 
             {/* Bio */}
-            <div>
+            {/* <div>
               <Label htmlFor="bio">Bio</Label>
               <Textarea
                 id="bio"
@@ -217,7 +217,7 @@ const EditProfileModal = ({ profile, open, onOpenChange, onSave }) => {
                 onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                 placeholder="Tell us about yourself and your business in 250 words or less."
               />
-            </div>
+            </div> */}
 
             {/* Profile Picture */}
             <div className="flex flex-col items-start gap-3">
