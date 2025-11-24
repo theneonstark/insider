@@ -147,9 +147,9 @@ const LandingPageEditor = () => {
         {user_tier === 'Shine Plus' ? (
           <CardContent>
           <div className="flex gap-3 mb-6">
-            <Button onClick={handlePreview} variant="outline" className="gap-2">
+            {/* <Button onClick={handlePreview} variant="outline" className="gap-2">
               <Eye className="w-4 h-4" /> Preview
-            </Button>
+            </Button> */}
             <Button onClick={handleSave} className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2">
               <Save className="w-4 h-4" /> Save & Publish
             </Button>
