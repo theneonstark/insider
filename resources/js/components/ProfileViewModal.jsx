@@ -10,7 +10,7 @@ const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement
   const { props } = usePage();
   console.log(props);
   
-  const role = props.auth.user.role
+  const role = props?.auth?.user?.role
   
    useEffect(() => {
     if (open && profile && onViewIncrement) {
