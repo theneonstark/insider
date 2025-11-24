@@ -12,18 +12,13 @@ class StripeWebhookController
 {
     public function __invoke(Request $request)
     {
-        // 1. Stripe secret key
         \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
 
-        // 2. Webhook secret (from .env)
         $endpointSecret = env('STRIPE_WEBHOOK_SECRET');
-
-        // 3. Payload aur signature
         $payload = $request->getContent();
         $sigHeader = $request->header('Stripe-Signature');
 
         try {
-            // 4. Verify webhook
             $event = Webhook::constructEvent($payload, $sigHeader, $endpointSecret);
         } catch (SignatureVerificationException $e) {
             \Log::error('Webhook signature failed: ' . $e->getMessage());
@@ -33,46 +28,102 @@ class StripeWebhookController
             return response('Error', 400);
         }
 
-        // 5. Sirf success event handle karo
-        // StripeWebhookController.php → __invoke method ke andar
+        // -----------------------------------------------------------
+        // ONLY HANDLE SUCCESS EVENT
+        // -----------------------------------------------------------
+        if ($event->type === 'payment_intent.succeeded') {
 
-if ($event->type === 'payment_intent.succeeded') {
-    $pi = $event->data->object;
+            $pi = $event->data->object;
+            $paymentType = $pi->metadata->payment_type ?? null;
 
-    $userId = $pi->metadata->user_id ?? null;
-    $tierId = $pi->metadata->tier_id ?? null;
+            // **************************************
+            // MEMBERSHIP PAYMENT (EXISTING CODE)
+            // **************************************
+            if ($paymentType === "membership") {
 
-    if (!$userId || !$tierId) {
-        \Log::warning('Missing user_id or tier_id in metadata', ['pi_id' => $pi->id]);
-        return response('Missing metadata', 400);
-    }
+                $userId = $pi->metadata->user_id ?? null;
+                $tierId = $pi->metadata->tier_id ?? null;
 
-    // 1. Payment save
-    Payment::updateOrCreate(
-        ['payment_intent_id' => $pi->id],
-        [
-            'user_id' => $userId,
-            'plan_title' => $pi->metadata->plan_title ?? 'Unknown',
-            'tier_id' => $tierId,
-            'amount' => $pi->amount_received / 100,
-            'currency' => strtoupper($pi->currency),
-            'status' => 'succeeded',
-            'stripe_data' => $pi->toArray(),
-        ]
-    );
+                if (!$userId || !$tierId) {
+                    \Log::warning('Missing membership metadata', ['pi_id' => $pi->id]);
+                    return response('Missing metadata', 400);
+                }
 
-    // 2. User ka tier update kar
-    $user = \App\Models\User::find($userId);
-    if ($user) {
-        $user->tier_id = $tierId;
-        $user->save();
-        \Log::info('User tier updated', ['user_id' => $userId, 'tier_id' => $tierId]);
-    } else {
-        \Log::error('User not found for tier update', ['user_id' => $userId]);
-    }
-}
+                // Save payment
+                Payment::updateOrCreate(
+                    ['payment_intent_id' => $pi->id],
+                    [
+                        'user_id' => $userId,
+                        'plan_title' => $pi->metadata->plan_title ?? 'Unknown',
+                        'tier_id' => $tierId,
+                        'amount' => $pi->amount_received / 100,
+                        'currency' => strtoupper($pi->currency),
+                        'status' => 'succeeded',
+                        'stripe_data' => $pi->toArray(),
+                    ]
+                );
 
-        // 6. Stripe ko batao: "Received!"
+                // Update user tier
+                $user = \App\Models\User::find($userId);
+                if ($user) {
+                    $user->tier_id = $tierId;
+                    $user->save();
+                    \Log::info('User tier updated', ['user_id' => $userId, 'tier_id' => $tierId]);
+                } else {
+                    \Log::error('User not found', ['user_id' => $userId]);
+                }
+            }
+
+            // **************************************
+            // FEATURE PAYMENT (NEW CODE)
+            // **************************************
+            if ($paymentType === "feature") {
+
+                $userId = $pi->metadata->user_id ?? null;
+                $days = intval($pi->metadata->days ?? 0);
+                $planTitle = $pi->metadata->plan_title ?? "Feature Purchase";
+
+                if (!$userId || $days <= 0) {
+                    \Log::warning('Missing feature metadata', ['pi_id' => $pi->id]);
+                    return response('Missing feature metadata', 400);
+                }
+
+                // Save payment in SAME TABLE
+                Payment::updateOrCreate(
+                    ['payment_intent_id' => $pi->id],
+                    [
+                        'user_id' => $userId,
+                        'plan_title' => $planTitle, // Example: Feature for 5 days
+                        'tier_id' => null, // Feature has no tier
+                        'amount' => $pi->amount_received / 100,
+                        'currency' => strtoupper($pi->currency),
+                        'status' => 'succeeded',
+                        'stripe_data' => $pi->toArray(),
+                    ]
+                );
+
+                // Extend feature activation
+                $user = \App\Models\User::find($userId);
+
+                if ($user) {
+                    $start = ($user->featured_valid && $user->featured_valid > now())
+                                ? $user->featured_valid
+                                : now();
+                    $user->featured = 1;
+                    $user->featured_valid = $start->copy()->addDays($days);
+                    $user->save();
+
+                    \Log::info("Feature activated", [
+                        'user_id' => $userId,
+                        'days' => $days,
+                        'valid_until' => $user->featured_valid
+                    ]);
+                } else {
+                    \Log::error('User not found for feature', ['user_id' => $userId]);
+                }
+            }
+        }
+
         return response('Webhook received', 200);
     }
 }

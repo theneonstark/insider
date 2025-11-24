@@ -25,9 +25,9 @@ class PaymentController
 
     // API to create PaymentIntent
     // PaymentController.php - createPaymentIntent
+
     public function createPaymentIntent(Request $request)
     {
-
         $request->validate([
             'amount' => 'required|integer|min:50',
             'plan_title' => 'required|string',
@@ -41,6 +41,7 @@ class PaymentController
             'currency' => 'usd',
             'payment_method_types' => ['card'],
             'metadata' => [
+                'payment_type' => 'membership',
                 'plan_title' => $request->plan_title,
                 'tier_id' => $request->tier_id,     // ← YEH ADD KAR
                 'user_id' => auth()->id(),

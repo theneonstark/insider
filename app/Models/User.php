@@ -36,6 +36,7 @@ class User extends Authenticatable
 
     protected $casts = [
         'featured' => 'boolean',
+        'featured_valid' => 'datetime',   // ⬅ ADD THIS
     ];
 
     public function industry()

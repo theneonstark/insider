@@ -159,43 +159,47 @@ class HomeController
             ], 401);
         }
 
-        // 🧠 Validate user input
+        // 🧠 Validate request
         $validated = $request->validate([
-            'days' => 'required|integer|min:1|max:365', // limit max 1 year
+            'days' => 'required|integer|min:1|max:365'
         ]);
 
+        $days = $validated['days'];
+        $amount = $days * 100; // $1/day → convert to cents
+
         try {
-            // If already active & still valid → block reactivation
-            if ($user->featured && $user->featured_valid && now()->lt($user->featured_valid)) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Feature is already active until ' . $user->featured_valid->format('d M Y H:i'),
-                ], 400);
-            }
+            \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
 
-            // ⏳ Calculate new expiry
-            $expiry = now()->addDays($validated['days']);
-
-            // 🟢 Update user table
-            $user->update([
-                'featured' => 1,
-                'featured_valid' => $expiry,
+            // 🟢 Create Stripe PaymentIntent
+            $intent = \Stripe\PaymentIntent::create([
+                'amount' => $amount,
+                'currency' => 'usd',
+                'payment_method_types' => ['card'],
+                'metadata' => [
+                    'payment_type' => 'feature',
+                    'days' => $days,
+                    'plan_title' => "Feature for {$days} days",
+                    'user_id' => $user->id,
+                ],
             ]);
 
             return response()->json([
                 'status' => true,
-                'message' => "Feature activated for {$validated['days']} days",
-                'featured_valid_until' => $expiry->format('Y-m-d H:i:s'),
+                'clientSecret' => $intent->client_secret,
+                'message' => "Stripe payment initiated for {$days} days feature"
             ], 200);
         } catch (\Exception $e) {
-            \Log::error('Feature activation failed: ' . $e->getMessage());
+
+            \Log::error('Feature PaymentIntent failed: ' . $e->getMessage());
+
             return response()->json([
                 'status' => false,
-                'message' => 'Failed to activate feature',
+                'message' => 'Payment initiation failed',
                 'error' => $e->getMessage(),
             ], 500);
         }
     }
+
 
     public function updatePassword(Request $request)
     {
@@ -231,7 +235,6 @@ class HomeController
             'message' => 'Password updated successfully',
         ], 200);
     }
-
 
     public function updateLandingPage(Request $request)
     {
