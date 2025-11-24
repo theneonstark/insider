@@ -10,7 +10,7 @@ class AdminController
 {
     public function users()
     {
-        $users = \App\Models\User::all();
+        $users = \App\Models\User::with('tier')->get();
 
         return response()->json([
             'message' => 'All users fetched successfully',

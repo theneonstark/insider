@@ -93,7 +93,7 @@ class HomeController
             'stateId' => 'nullable|int|max:100',
             'dob' => 'nullable|date',
             'bio' => 'nullable|string|max:1000',
-            'image' => 'nullable|file|mimes:jpg,jpeg,png', // file validation
+            'image' => 'nullable', // file validation
         ]);
 
         if ($validator->fails()) {

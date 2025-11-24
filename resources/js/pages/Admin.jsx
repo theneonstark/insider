@@ -208,7 +208,7 @@ const Admin = () => {
   };
 
   const handleStatusChange = async (id, status) => {
-    // await axios.post(`/update-status/${id}`, { status });
+    await axios.post(`/update-status/${id}`, { status });
     toast.success(`User status updated to ${status ? "Active" : "Inactive"}`);
   };
 
@@ -402,7 +402,7 @@ const Admin = () => {
                     <TableHead>Tier</TableHead>
                     <TableHead>Views</TableHead>
                     <TableHead>Featured</TableHead>
-                    <TableHead>Status</TableHead>
+                    {/* <TableHead>Status</TableHead> */}
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -411,15 +411,15 @@ const Admin = () => {
                     <TableRow key={index}>
                       <TableCell className="font-medium">{user.name}</TableCell>
                       <TableCell>{user.email}</TableCell>
-                      <TableCell>{user.tier_id}</TableCell>
+                      <TableCell>{user?.tier?.tier_name}</TableCell>
                       <TableCell>{user.views}</TableCell>
                       <TableCell>{user.featured ? "Yes" : "No"}</TableCell>
-                      <TableCell>
+                      {/* <TableCell>
                         <Switch
                           checked={user.status === 1}
                           onCheckedChange={(val) => handleStatusChange(user.id, val)}
                         />
-                      </TableCell>
+                      </TableCell> */}
                       <TableCell>
                         <div className="flex gap-2">
                           <Button 

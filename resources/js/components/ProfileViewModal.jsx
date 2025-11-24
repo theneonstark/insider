@@ -4,10 +4,15 @@ import { Badge } from "@/components/ui/badge";
 import { Eye } from "lucide-react";
 import { useEffect } from "react";
 import toast, { Toaster } from "react-hot-toast";
+import { usePage } from "@inertiajs/react";
 
 const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement }) => {
+  const { props } = usePage();
+  console.log(props);
   
-  useEffect(() => {
+  const role = props.auth.user.role
+  
+   useEffect(() => {
     if (open && profile && onViewIncrement) {
       // Increment view counter when modal fully opens
       onViewIncrement();
@@ -28,7 +33,10 @@ const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement
           {profile.image && (
             <div className="flex justify-center">
               <img 
-                src={profile.image} 
+                src={role === "admin"
+                      ? `../${profile.image}`
+                      : `${profile.image}`
+                    }
                 alt={profile.name}
                 className="w-32 h-32 rounded-full object-cover shadow-[var(--shadow-card)]"
               />
@@ -102,14 +110,14 @@ const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement
           
           {/* Actions */}
           <div className="flex gap-3 pt-4">
-            {onEdit && (
-              <Button 
-                onClick={onEdit}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
-                Edit Profile
-              </Button>
-            )}
+            {role !== "admin" && onEdit && (
+                <Button
+                  onClick={onEdit}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  Edit Profile
+                </Button>
+              )}
             <Button 
               variant="outline"
               onClick={() => onOpenChange(false)}
