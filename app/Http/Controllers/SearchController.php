@@ -62,7 +62,7 @@ class SearchController
         $now = now();
 
         // Eager load relations: tier, industry, region
-        $baseQuery = \App\Models\User::with(['industry', 'region']);
+        $baseQuery = \App\Models\User::with(['tier', 'industry', 'region']);
 
         // 1️⃣ Featured Users
         $featuredUsers = $baseQuery->clone()
@@ -101,7 +101,11 @@ class SearchController
 
     public function sparkleUser()
     {
-        $users = User::where('tier_id', 2)->get()->shuffle();
+        // load users with their industry and region relations
+        $users = User::with(['industry', 'region', 'tier'])
+            ->where('tier_id', 2)
+            ->get()
+            ->shuffle();
 
         return response()->json([
             'success' => true,
@@ -112,7 +116,10 @@ class SearchController
 
     public function shineUser()
     {
-        $users = User::where('tier_id', 3)->get()->shuffle();
+        $users = User::with(['industry', 'region', 'tier'])
+            ->where('tier_id', 3)
+            ->get()
+            ->shuffle();
 
         return response()->json([
             'success' => true,
@@ -123,12 +130,28 @@ class SearchController
 
     public function shinePlanUser()
     {
-        $users = User::where('tier_id', 4)->get()->shuffle();
+        // ⭐ Fetch users with relations
+        $users = User::with(['industry', 'region', 'tier'])
+            ->where('tier_id', 4)
+            ->get();
+
+        // ⭐ Featured users (NO SHUFFLE)
+        $featuredUsers = $users->filter(function ($u) {
+            return $u->featured == 1;
+        });
+
+        // ⭐ Non-featured → SHUFFLE
+        $normalUsers = $users->filter(function ($u) {
+            return $u->featured != 1;
+        })->shuffle();
+
+        // ⭐ Merge → featured first, then shuffled normal users
+        $finalUsers = $featuredUsers->values()->merge($normalUsers->values());
 
         return response()->json([
             'success' => true,
-            'message' => 'Shine users fetched successfully',
-            'data' => $users,
+            'message' => 'Shine Plus users fetched successfully',
+            'data' => $finalUsers,
         ]);
     }
 }

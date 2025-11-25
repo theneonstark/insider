@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { increaseView } from "@/lib/apis"; // 👈 import API
 import { Link } from "@inertiajs/react";
 
-const WelcomeMemberCard = ({ id, name, industry,tier, region, image, views = 0, onViewProfile, isFeatured  }) => {
+const WelcomeMemberCard = ({ id, featured,name, industry,tier, region, image, views = 0, onViewProfile, isFeatured  }) => {
   
   const [viewCount, setViewCount] = useState(views);
   const { toast } = useToast();
@@ -71,7 +71,7 @@ const WelcomeMemberCard = ({ id, name, industry,tier, region, image, views = 0, 
 
   return (
     <Card className="relative animate-fade-in hover-lift overflow-hidden">
-    {isFeatured && (
+    {(isFeatured || featured) && (
       <div className="absolute top-2 right-2 bg-yellow-500 text-white p-1 rounded-full shadow-md z-50">
         <Star size={16} />
       </div>
@@ -88,9 +88,9 @@ const WelcomeMemberCard = ({ id, name, industry,tier, region, image, views = 0, 
         <div className="flex items-start justify-between mb-2">
           <div>
             <h3 className="font-semibold text-lg">{name}</h3>
-            <p className="text-sm text-muted-foreground">{industry?.industryName} ({region?.regionName})</p>
+            <p className="text-sm text-muted-foreground">{industry?.industryName} {region?.regionName && `(${region?.regionName})`}</p>
           </div>
-          <Badge className={tierColors[tier]}>{tier?.tier_name}</Badge>
+          <Badge className="p-1">{tier?.tier_name}</Badge>
         </div>
 
         <div className="flex items-center gap-2 text-sm text-muted-foreground">

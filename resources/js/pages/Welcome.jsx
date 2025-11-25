@@ -361,6 +361,7 @@ const Welcome = () => {
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {sparkleMembers.length > 0 ? (
               shinePlusMembers.map((member, index) => (
+                
                 <WelcomeMemberCard
                   key={index}
                   {...member}

@@ -9,8 +9,8 @@ import { usePage } from "@inertiajs/react";
 const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement }) => {
   
   const { props } = usePage();
-  const view = props?.auth?.user?.view;
-  const role = props?.auth?.user?.role
+
+  const role = props?.auth?.user?.role  
   
    useEffect(() => {
       if (open && profile && onViewIncrement) {
@@ -93,9 +93,9 @@ const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement
           
           {/* Membership & Views */}
           <div className="flex items-center gap-4 pt-4 border-t">
-            <div>
+            <div className="flex flex-col items-center">
               <label className="text-sm font-medium text-muted-foreground">Membership Tier</label>
-              <Badge className="mt-1 bg-primary text-primary-foreground">{profile.tier}</Badge>
+              <Badge className="mt-1 p-1 bg-primary text-primary-foreground">{profile?.tier?.tier_name}</Badge>
             </div>
             
             <div className="flex items-center gap-2">
