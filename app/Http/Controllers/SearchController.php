@@ -40,7 +40,7 @@ class SearchController
                 $users = $query->get();
             } else {
                 // Agar filter nahi hai to 3 random users laao
-                $users = $query->inRandomOrder()->take(3)->get();
+                $users = $query->inRandomOrder()->take(12)->get();
             }
 
             $users = $query->with(['industry', 'region', 'tier'])->get();

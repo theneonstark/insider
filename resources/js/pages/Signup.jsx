@@ -19,6 +19,7 @@ import {
 import { Link } from "@inertiajs/react";
 import { register, Data } from "@/lib/apis";
 import toast, { Toaster } from "react-hot-toast";
+import { X } from "lucide-react";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -74,9 +75,15 @@ const Signup = () => {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4"
+      className="relative min-h-screen flex items-center justify-center p-4"
       style={{ background: "var(--gradient-hero)" }}
     >
+    <Link
+      href="/"
+      className="absolute top-2 right-2 p-2 rounded-full hover:bg-muted transition"
+    >
+      <X className="h-5 w-5 text-muted-foreground" />
+    </Link>
       <Card className="w-full max-w-md animate-fade-in">
         <CardHeader className="text-center">
           <Link href="/" className="flex justify-center mb-4">

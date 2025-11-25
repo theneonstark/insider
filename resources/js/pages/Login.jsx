@@ -12,6 +12,7 @@ import {
 import toast, { Toaster } from "react-hot-toast";
 import { Link, router } from "@inertiajs/react";
 import { Login as LoginApi } from "@/lib/apis"; // 👈 your API function import
+import { X } from "lucide-react";
 
 const Login = () => {
   const [credentials, setCredentials] = useState({
@@ -51,7 +52,13 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-secondary">
+    <div className="relative min-h-screen flex items-center justify-center p-4 bg-secondary">
+    <Link
+      href="/"
+      className="absolute top-2 right-2 p-2 rounded-full hover:bg-muted transition"
+    >
+      <X className="h-5 w-5 text-muted-foreground" />
+    </Link>
       <Card className="w-full max-w-md animate-fade-in">
         <CardHeader className="text-center">
           <Link href="/" className="flex justify-center mb-4">

@@ -26,6 +26,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {loadStripe} from "@stripe/stripe-js";
 import {CardNumberElement, useElements} from "@stripe/react-stripe-js";
 import AdPaymentModal from "@/components/AdPaymentModal";
+import Autoplay from "embla-carousel-autoplay";
 
 const Dashboard = (userData) => {
   // Mock data for all running ads (admin + user ads)
@@ -1023,16 +1024,26 @@ const handlePasswordChange = async () => {
             gradient="linear-gradient(135deg, #FFF3F6 0%, #E7C8FF 100%)"
           /> */}
 
-          <Card>
-            <CardHeader>
+          <Card className="w-full max-w-[1200px] mx-auto" >
+            {/* <CardHeader>
               <CardTitle>Active Campaigns</CardTitle>
               <CardDescription>View all running ads in a carousel</CardDescription>
-            </CardHeader>
+            </CardHeader> */}
 
             <CardContent>
-              <Carousel className="w-full">
+              <Carousel 
+                className="w-full" 
+                opts={{
+                  align: "start",
+                  loop: true,
+                }} plugins={[
+                  Autoplay({
+                    delay: 2000,
+                  }),
+                ]}
+                >
                 <CarouselContent className="-ml-2">
-                  {runningAds.filter(ad => ad.active).map((ad) => (
+                  {runningAds.filter(ad => ad.active && ad.user_id === 7).map((ad) => (
                     <CarouselItem key={ad.id} className="pl-2 md:basis-1/2 lg:basis-1/3">
                       <Card className="p-4 border border-border/60 shadow-sm hover:shadow-md transition-shadow">
                         <div className="flex flex-col gap-4">
@@ -1052,10 +1063,6 @@ const handlePasswordChange = async () => {
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-2">
                               <h3 className="font-semibold text-foreground truncate">{ad.title}</h3>
-
-                              <Badge variant={ad.createdBy === "admin" ? "default" : "secondary"}>
-                                {ad.createdBy === "admin" ? "Platform" : "User"}
-                              </Badge>
                             </div>
 
                             {/* LINK */}
