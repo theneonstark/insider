@@ -57,6 +57,48 @@ class SearchController
         }
     }
 
+    public function allUsers()
+    {
+        $now = now();
+
+        // Eager load relations: tier, industry, region
+        $baseQuery = \App\Models\User::with(['industry', 'region']);
+
+        // 1️⃣ Featured Users
+        $featuredUsers = $baseQuery->clone()
+            ->where('featured', 1)
+            ->where('featured_valid', '>', $now)
+            ->orderBy('featured_valid', 'desc')
+            ->take(3)
+            ->get();
+
+        $remainingSlots = 3 - $featuredUsers->count();
+
+        // 2️⃣ Normal Users (shuffle)
+        $normalUsers = collect();
+        if ($remainingSlots > 0) {
+            $normalUsers = $baseQuery->clone()
+                ->where(function ($q) use ($now) {
+                    $q->where('featured', 0)
+                        ->orWhere('featured_valid', '<=', $now)
+                        ->orWhereNull('featured_valid');
+                })
+                ->inRandomOrder()
+                ->take($remainingSlots)
+                ->get();
+        }
+
+        // 3️⃣ Merge
+        $users = $featuredUsers->merge($normalUsers);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Users fetched successfully',
+            'data' => $users
+        ]);
+    }
+
+
     public function sparkleUser()
     {
         $users = User::where('tier_id', 2)->get()->shuffle();

@@ -15,7 +15,7 @@ import MembershipCard from "@/components/MembershipCard";
 import PaymentModal from "@/components/PaymentModal";
 import FeatureActivationModal from "@/components/FeatureActivationModal";
 import { usePage } from "@inertiajs/react";
-import { CreateAds, Data, getAds, membershipPlans, updatePassword } from "@/lib/apis";
+import { CreateAds, Data, getAds, membershipPlans, updatePassword, userAds } from "@/lib/apis";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import toast from "react-hot-toast";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,6 +23,9 @@ import EditAdModal from "@/components/EditAdModal";
 import { Switch } from "@/components/ui/switch";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {loadStripe} from "@stripe/stripe-js";
+import {CardNumberElement, useElements} from "@stripe/react-stripe-js";
+import AdPaymentModal from "@/components/AdPaymentModal";
 
 const Dashboard = (userData) => {
   // Mock data for all running ads (admin + user ads)
@@ -58,6 +61,8 @@ const Dashboard = (userData) => {
   const [adTitle, setAdTitle] = useState("");
   const [adLink, setAdLink] = useState("");
   const [adActive, setAdActive] = useState(false);
+  const [adPaymentOpen, setAdPaymentOpen] = useState(false);
+  const [adPayment, setAdPayment] = useState(null);
 
   useEffect(() => {
     const fetchFilters = async () => {
@@ -222,18 +227,29 @@ const handlePasswordChange = async () => {
   useEffect(() => {
     fetchRunningAds();
   }, []);
-  
 
-  const [ads, setAds] = useState([
-    { 
-      id: 1, 
-      title: "My Business Promotion", 
-      description: "Promote my services",
-      link: "https://example.com",
-      active: true,
-      image: null
+
+  
+  
+  const [ads, setAds] = useState([]);
+  
+  const fetchAds = async () => {
+    try {
+      const res = await userAds();
+
+      if (res.data.status) {
+        setAds(res.data.data);  // all ads from backend
+      }
+
+    } catch (error) {
+      console.log("Failed to fetch ads", error);
     }
-  ]);
+  };
+
+  useEffect(() => {
+    fetchAds();
+  }, []);
+
 
   const handleEditAd = (ad) => {
     setSelectedAd(ad);
@@ -263,40 +279,68 @@ const handlePasswordChange = async () => {
   };
 
   const handleCreateAd = async () => {
-    const form = new FormData();
-    form.append("user_id", user.id);
-    form.append("title", adTitle);
-    form.append("link", adLink);
-    form.append("active", adActive ? 1 : 0);
+  if (!formData.start_date) {
+    toast.error("Start date is required");
+    return;
+  }
 
-    if (formData.state) form.append("region_id", formData.state);
-    if (formData.industry) form.append("industry_id", formData.industry);
+  if (!formData.end_date) {
+    toast.error("End date is required");
+    return;
+  }
 
-    if (newAdImage) {
-      form.append("image", newAdImage);  
+  if (new Date(formData.end_date) < new Date(formData.start_date)) {
+    toast.error("End date cannot be before start date");
+    return;
+  }
+
+  const form = new FormData();
+  form.append("user_id", user.id);
+  form.append("title", adTitle);
+  form.append("link", adLink);
+  form.append("start_date", formData.start_date);
+  form.append("end_date", formData.end_date);
+  form.append("active", adActive ? 1 : 0);
+
+  if (formData.state) form.append("region_id", formData.state);
+  if (formData.industry) form.append("industry_id", formData.industry);
+  if (newAdImage) form.append("image", newAdImage);
+
+  try {
+    const res = await CreateAds(form);
+
+    if (!res.data.status) {
+      toast.error("Failed to initiate payment");
+      return;
     }
 
-    try {
-      const res = await CreateAds(form);
+    // ⭐ Stripe Keys
+    const clientSecret = res.data.clientSecret;
+    const publicKey = res.data.public_key;
 
-      if (res.data.status) {
-        toast.success("Ad created!");
-
-        fetchRunningAds();
-
-        setAdTitle("");
-        setAdLink("");
-        setNewAdImage(null);
-        setNewAdImagePreview(null);
-        setAdActive(false);
-        setFormData({ state: "", industry: "" });
+    // ⭐ SET PAYMENT META FOR MODAL
+    setAdPayment({
+      clientSecret,
+      publicKey,
+      adMeta: {
+        user_id: user.id,
+        title: adTitle,
+        start_date: formData.start_date,
+        end_date: formData.end_date,
+        region_id: formData.state,
+        industry_id: formData.industry,
+        image: newAdImage
       }
+    });
 
-    } catch (err) {
-      console.log(err);
-      toast.error("Ad creation failed");
-    }
-  };
+    // ⭐ OPEN AD PAYMENT MODAL
+    setAdPaymentOpen(true);
+
+  } catch (err) {
+    console.error(err);
+    toast.error("Something went wrong while creating ad");
+  }
+};
 
 
   const handleInputChange = (field, value) => {
@@ -573,11 +617,6 @@ const handlePasswordChange = async () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="ad-description">Ad Description</Label>
-                  <Textarea id="ad-description" placeholder="Describe your ad..." />
-                </div>
-
-                <div>
                   <Label htmlFor="ad-link">CTA Link</Label>
                   <Input 
                     id="ad-link"
@@ -669,6 +708,28 @@ const handlePasswordChange = async () => {
                   </div>
                 </div>
 
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="start-date">Start Date</Label>
+                    <Input
+                      id="start-date"
+                      type="date"
+                      value={formData.start_date}
+                      onChange={(e) => handleInputChange("start_date", e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="end-date">End Date</Label>
+                    <Input
+                      id="end-date"
+                      type="date"
+                      value={formData.end_date}
+                      onChange={(e) => handleInputChange("end_date", e.target.value)}
+                    />
+                  </div>
+                </div>
+
                 <div className="flex items-center gap-2">
                   <Switch 
                     id="ad-active"
@@ -703,7 +764,10 @@ const handlePasswordChange = async () => {
                         <h4 className="font-semibold">{ad.title}</h4>
                         <p className="text-sm text-muted-foreground">{ad.description}</p>
                       </div>
-                      <Badge variant={ad.active ? "default" : "secondary"}>
+                      <Badge variant={ad?.end_date ? "secondary" : "secondary"} className="p-2">
+                        Valid Date : {ad.end_date}
+                      </Badge>
+                      <Badge variant={ad.active ? "default" : "secondary"} className="p-2">
                         {ad.active ? "Active" : "Inactive"}
                       </Badge>
                       <Button 
@@ -994,20 +1058,6 @@ const handlePasswordChange = async () => {
                               </Badge>
                             </div>
 
-                            <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                              {ad.description}
-                            </p>
-
-                            {/* TAGS */}
-                            <div className="flex gap-2 flex-wrap mb-2">
-                              {ad.state && (
-                                <Badge variant="outline" className="text-xs">{ad.state}</Badge>
-                              )}
-                              {ad.industry && (
-                                <Badge variant="outline" className="text-xs">{ad.industry}</Badge>
-                              )}
-                            </div>
-
                             {/* LINK */}
                             {ad.link && (
                               <a
@@ -1084,6 +1134,14 @@ const handlePasswordChange = async () => {
         onOpenChange={setEditAdOpen}
         onSave={handleSaveAd}
       />
+
+     {adPayment && (
+        <AdPaymentModal
+          open={adPaymentOpen}
+          onOpenChange={setAdPaymentOpen}
+          adForm={adPayment.adMeta}
+        />
+      )}
     </div>
   );
 };

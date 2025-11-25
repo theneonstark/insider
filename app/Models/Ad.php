@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Ad extends Model
 {
-    protected $table = 'ads';
+    use HasFactory;
 
     protected $fillable = [
         'user_id',
@@ -15,32 +16,24 @@ class Ad extends Model
         'title',
         'link',
         'image',
-        'active'
+        'start_date',
+        'end_date',
+        'active',
     ];
 
     // Relationships
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class);
     }
 
     public function region()
     {
-        return $this->belongsTo(Region::class, 'regionId');
+        return $this->belongsTo(Region::class, 'region_id', 'regionId');
     }
 
     public function industry()
     {
-        return $this->belongsTo(Industry::class, 'industryId');
-    }
-
-    public function getUpdatedAtAttribute($value)
-    {
-        return date('d M y - h:i A', strtotime($value));
-    }
-
-    public function getCreatedAtAttribute($value)
-    {
-        return date('d M y - h:i A', strtotime($value));
+        return $this->belongsTo(Industry::class, 'industry_id', 'industryId');
     }
 }

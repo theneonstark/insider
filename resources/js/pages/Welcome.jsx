@@ -1,224 +1,174 @@
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { Link, usePage } from "@inertiajs/react";
+
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import MembershipCard from "@/components/MembershipCard";
-import MemberCard from "@/components/MemberCard";
 import SearchFilters from "@/components/SearchFilters";
-import ProfileViewModal from "@/components/ProfileViewModal";
-import { Link, usePage } from "@inertiajs/react";
-import { useEffect, useState } from "react";
-import { Data, filter, getAds, membershipPlans, shinePlusUser, shineUser, sparkleUser } from "@/lib/apis";
-import toast, { Toaster } from "react-hot-toast";
-import PaymentModal from "@/components/PaymentModal";
 import WelcomeMemberCard from "@/components/WelcomeMemberCard";
+import MembershipCard from "@/components/MembershipCard";
+import ProfileViewModal from "@/components/ProfileViewModal";
+import PaymentModal from "@/components/PaymentModal";
+
+import {
+  Data,
+  allUsers,
+  filter,
+  membershipPlans,
+  sparkleUser,
+  shineUser,
+  shinePlusUser,
+  getAds
+} from "@/lib/apis";
+
+import toast, { Toaster } from "react-hot-toast";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Badge } from "@/components/ui/badge";
 import Autoplay from "embla-carousel-autoplay";
+import { Badge } from "@/components/ui/badge";
 
 const Welcome = () => {
-  const { props } = usePage(); // if using Inertia
-  const user = props.auth?.user; // logged-in user
+  const { props } = usePage();
+  const user = props.auth?.user;
+
+  // STATES
   const [filters, setFilters] = useState({ industry: [], region: [] });
   const [loading, setLoading] = useState(true);
-  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
-  const [selectedTier, setSelectedTier] = useState(null);
+  const [plans, setPlans] = useState([]);
+
   const [members, setMembers] = useState([]);
   const [searching, setSearching] = useState(false);
+
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [selectedTier, setSelectedTier] = useState(null);
+
   const [viewProfileOpen, setViewProfileOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState(null);
+
   const [sparkleMembers, setSparkleMembers] = useState([]);
   const [shineMembers, setShineMembers] = useState([]);
   const [shinePlusMembers, setShinePlusMembers] = useState([]);
-
-
-  const [plans, setPlans] = useState([]);
   const [runningAds, setRunningAds] = useState([]);
 
-  // 🧠 Fetch plans from API
-  useEffect(() => {
-    const fetchPlans = async () => {
-      try {
-        const res = await membershipPlans();
-        if (res.status === 200 && res.data.data) {
-          // 🧠 Parse and normalize data
-          const parsedPlans = res.data.data.map((plan) => ({
-            id: plan.id,
-            title: plan.tier_name,
-            price: plan.price,
-            // feature is a stringified JSON array, so parse it safely
-            features:
-              typeof plan.feature === "string"
-                ? JSON.parse(plan.feature)
-                : plan.feature,
-            highlighted: Boolean(plan.highlighted),
-          }));
-
-          setPlans(parsedPlans);
-        } else {
-          toast.error("Failed to load membership plans");
-        }
-      } catch (error) {
-        console.error("Error fetching membership plans:", error);
-        toast.error("Something went wrong while fetching plans");
-      } finally {
-        setLoading(false);
+  // LOAD DEFAULT 3 USERS (featured + shuffled)
+  const loadAllUsers = async () => {
+    try {
+      const res = await allUsers();
+      
+      if (res.data.status) {
+        setMembers(res?.data?.data);
       }
-    };
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
-    fetchPlans();
+  useEffect(() => {
+    loadAllUsers();
   }, []);
-  
 
-
+  // LOAD FILTERS
   useEffect(() => {
     const loadFilters = async () => {
       try {
-        const result = await Data();
-        
-        if (result.status) {
+        const res = await Data();
+        if (res.status) {
           setFilters({
-            industry: result?.data?.industry || [],
-            region: result?.data?.region || []
+            industry: res.data.industry,
+            region: res.data.region
           });
         }
-      } catch (err) {
-        console.error("Filters load nahi hue:", err);
-        // fallback empty arrays
-        setFilters({ industry: [], region: [] });
+      } catch {
+        toast.error("Failed to load filters");
       } finally {
         setLoading(false);
       }
     };
-
     loadFilters();
   }, []);
 
+  // LOAD PLANS
   useEffect(() => {
-    const loadInitialData = async () => {
+    const loadPlans = async () => {
       try {
-        const result = await Data();
-        if (result.status) {
-          setFilters({
-            industry: result?.data?.industry || [],
-            region: result?.data?.region || [],
-          });
-        }
-
-        // 🧠 Fetch all users (excluding admins)
-        const res = await filter({});
-        if (res.status === 200 && res.data.status) {
-          const users = res.data.data.filter((u) => u.role !== "admin");
-          setMembers(users);
-        }
-      } catch (error) {
-        console.error("Error loading data:", error);
-        toast.error("Failed to load members");
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadInitialData();
-  }, []);
-
-  useEffect(() => {
-  const loadSparkle = async () => {
-    try {
-      const res = await sparkleUser();
-      if (res.status === 200) {
-        setSparkleMembers(res.data.data || []);
-      }
-    } catch (err) {
-      console.error("Sparkle users error:", err);
-    }
-  };
-
-  loadSparkle();
-  }, []);
-
-  useEffect(() => {
-  const loadShine = async () => {
-    try {
-      const res = await shineUser();
-      if (res.status === 200) {
-        setShineMembers(res.data.data || []);
-      }
-    } catch (err) {
-      console.error("Sparkle users error:", err);
-    }
-  };
-
-  loadShine();
-  }, []);
-
-  useEffect(() => {
-    const loadShinePlus = async () => {
-      try {
-        const res = await shinePlusUser();
+        const res = await membershipPlans();
         if (res.status === 200) {
-          setShinePlusMembers(res.data.data || []);
+          setPlans(
+            res.data.data.map((p) => ({
+              id: p.id,
+              title: p.tier_name,
+              price: p.price,
+              features: typeof p.feature === "string" ? JSON.parse(p.feature) : p.feature,
+              highlighted: Boolean(p.highlighted)
+            }))
+          );
         }
-      } catch (err) {
-        console.error("Sparkle users error:", err);
+      } catch {
+        toast.error("Failed to load plans");
       }
     };
-
-    loadShinePlus();
+    loadPlans();
   }, []);
 
-  // 🧠 Handle Search Filters
+  // LOAD FEATURED USERS
+  useEffect(() => {
+    sparkleUser().then((r) => setSparkleMembers(r.data?.data || []));
+    shineUser().then((r) => setShineMembers(r.data?.data || []));
+    shinePlusUser().then((r) => setShinePlusMembers(r.data?.data || []));
+  }, []);
+
+  // LOAD ADS
+  useEffect(() => {
+    getAds().then((res) => {
+      if (res.data.status) setRunningAds(res.data.data);
+    });
+  }, []);
+
+  // SEARCH LOGIC (IMPORTANT)
   const handleSearch = async (searchFilters) => {
     setSearching(true);
+
+    const hasFilters =
+      (searchFilters.name && searchFilters.name.trim() !== "") ||
+      (searchFilters.industry && searchFilters.industry.length > 0) ||
+      (searchFilters.region && searchFilters.region.length > 0);
+
+    // No Search → default 3 users
+    if (!hasFilters) {
+      await loadAllUsers();
+      setSearching(false);
+      return;
+    }
+
+    // Perform search
     try {
       const res = await filter(searchFilters);
       if (res.status === 200 && res.data.status) {
         const users = res.data.data.filter((u) => u.role !== "admin");
         setMembers(users);
-
-        if (users.length > 0) {
-          toast.success(`${users.length} result${users.length > 1 ? "s" : ""} found`);
-        } else {
-          toast.error("No results found");
-        }
       }
-    } catch (error) {
-      console.error("Search failed:", error);
-      toast.error("Search failed. Please try again.");
-    } finally {
-      setSearching(false);
+    } catch {
+      toast.error("Search failed");
     }
+
+    setSearching(false);
   };
 
   const handleJoinTier = (tier) => {
-    if(user){
-      setSelectedTier(tier);
-      setPaymentModalOpen(true);
-    }else {
-      window.location.href = '/login';
-    }
+    if (!user) return (window.location.href = "/login");
+    setSelectedTier(tier);
+    setPaymentModalOpen(true);
   };
 
   const handleViewProfile = (member) => {
-    setSelectedProfile(member);
+    // member is the updated object from the card
+    setSelectedProfile({
+      ...member,
+      views: Number(member.views) // guarantee it's a number
+    });
     setViewProfileOpen(true);
   };
 
-  const fetchRunningAds = async () => {
-    try {
-      const res = await getAds();
-
-      if (res.data.status) {
-        setRunningAds(res.data.data);  // all ads from backend
-      }
-
-    } catch (error) {
-      console.log("Failed to fetch running ads", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchRunningAds();
-  }, []);
   
 
   return (
@@ -326,37 +276,39 @@ const Welcome = () => {
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-heading mb-4 text-foreground">Find a Superstar</h2>
-            <p className="text-lg text-muted-foreground">Use the filters below to search by name, location, or industry</p>
+            <h2 className="text-4xl font-heading">Find a Superstar</h2>
           </div>
 
           <div className="max-w-3xl mx-auto mb-12">
-            {loading ? (
-              <div className="text-center py-4">Loading filters...</div>
-            ) : (
-              <SearchFilters
-                industries={filters.industry}
-                regions={filters.region}
-                onSearch={handleSearch}
-              />
-            )}
+            <SearchFilters
+              industries={filters.industry}
+              regions={filters.region}
+              onSearch={handleSearch}
+            />
           </div>
 
-          {/* 🧾 Search Results */}
           {searching ? (
-            <div className="text-center py-8 text-muted-foreground">Searching members...</div>
-          ) : members.length > 0 ? (
-            <div className="grid md:grid-cols-3 gap-8">
-              {members.map((member, index) => (
-                <WelcomeMemberCard key={index} {...member} onViewProfile={() => handleViewProfile(member)}/>                
-              ))}
-            </div>
-          ) : (
-            <div className="text-center text-muted-foreground py-8">
-              No members found. Try another filter.
-            </div>
-          )}
-        </div>
+              <div className="text-center py-8">Searching...</div>
+            ) : (
+              <div className="grid md:grid-cols-3 gap-8">
+                {members.map((m, i) => {
+                  const isFeatured =
+                    m.featured === true &&
+                    m.featured_valid &&
+                    new Date(m.featured_valid) > new Date();
+
+                  return (
+                    <WelcomeMemberCard
+                      key={i}
+                      {...m}
+                      isFeatured={isFeatured}   // ⭐ PASS FEATURE FLAG
+                      onViewProfile={() => handleViewProfile(m)}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </div>
       </section>
 
       {/* Featured Section */}
@@ -505,24 +457,6 @@ const Welcome = () => {
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-2">
                           <h3 className="font-semibold text-foreground truncate">{ad.title}</h3>
-
-                          <Badge variant={ad.createdBy === "admin" ? "default" : "secondary"}>
-                            {ad.createdBy === "admin" ? "Platform" : "User"}
-                          </Badge>
-                        </div>
-
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                          {ad.description}
-                        </p>
-
-                        {/* TAGS */}
-                        <div className="flex gap-2 flex-wrap mb-2">
-                          {ad.state && (
-                            <Badge variant="outline" className="text-xs">{ad.state}</Badge>
-                          )}
-                          {ad.industry && (
-                            <Badge variant="outline" className="text-xs">{ad.industry}</Badge>
-                          )}
                         </div>
 
                         {/* LINK */}
@@ -583,11 +517,6 @@ const Welcome = () => {
         profile={selectedProfile}
         open={viewProfileOpen}
         onOpenChange={setViewProfileOpen}
-        onViewIncrement={() => {
-          if (selectedProfile) {
-            setSelectedProfile({...selectedProfile, views: selectedProfile.views});
-          }
-        }}
       />
     </div>
   );

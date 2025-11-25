@@ -7,16 +7,16 @@ import toast, { Toaster } from "react-hot-toast";
 import { usePage } from "@inertiajs/react";
 
 const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement }) => {
-  const { props } = usePage();
   
+  const { props } = usePage();
+  const view = props?.auth?.user?.view;
   const role = props?.auth?.user?.role
   
    useEffect(() => {
-    if (open && profile && onViewIncrement) {
-      // Increment view counter when modal fully opens
-      onViewIncrement();
-    }
-  }, [open, profile, onViewIncrement]);
+      if (open && profile && onViewIncrement) {
+        onViewIncrement(); // but prefer to update parent from card instead
+      }
+    }, [open]); // run only when modal opens
 
   if (!profile) return null;
 
@@ -71,7 +71,7 @@ const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement
             {profile.state && (
               <div>
                 <label className="text-sm font-medium text-muted-foreground">State</label>
-                <p className="text-lg">{profile.state}</p>
+                <p className="text-lg">{profile?.region?.regionName}</p>
               </div>
             )}
             
@@ -102,7 +102,7 @@ const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement
               <Eye className="w-5 h-5 text-primary" />
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Profile Views</label>
-                <p className="text-lg font-semibold">{profile.views}</p>
+                <p className="text-lg font-semibold">{Number(profile.views)}</p>
               </div>
             </div>
           </div>

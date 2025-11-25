@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ad;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Validator;
+use Stripe\Stripe;
 
 class AdController extends Controller
 {
@@ -18,46 +20,55 @@ class AdController extends Controller
 
     // Create Ad
     public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'user_id' => 'required|exists:users,id',
-            'region_id' => 'nullable|exists:regions,regionId',
-            'industry_id' => 'nullable|exists:industries,industryId',
-            'title' => 'required|string|max:255',
-            'link' => 'nullable|string',
-            'image' => 'nullable|image',
-            'active' => 'boolean'
-        ]);
+{
+    $validator = Validator::make($request->all(), [
+        'user_id' => 'required|exists:users,id',
+        'region_id' => 'nullable|exists:regions,regionId',
+        'industry_id' => 'nullable|exists:industries,industryId',
+        'title' => 'required|string|max:255',
+        'link' => 'nullable|string',
+        'image' => 'nullable|image',
+        'start_date' => 'required|date',
+        'end_date' => 'required|date|after_or_equal:start_date',
+        'active' => 'boolean'
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors()
-            ]);
-        }
-
-        $data = $request->except('image');
-
-        // 🟢 Image Upload (No Symlink — Save in public/ads)
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-
-            // Save directly to public/ads
-            $file->move(public_path('ads'), $fileName);
-
-            // Save path in DB
-            $data['image'] = 'ads/' . $fileName;
-        }
-
-        $ad = Ad::create($data);
-
+    if ($validator->fails()) {
         return response()->json([
-            'status' => true,
-            'message' => 'Ad created successfully',
-            'data' => $ad
+            'status' => false,
+            'errors' => $validator->errors()
         ]);
     }
+
+    // Calculate days
+    $days = Carbon::parse($request->start_date)->diffInDays(Carbon::parse($request->end_date)) + 1;
+    $amount = $days * 100;   // $1 per day → Stripe needs cents
+
+    // Create payment intent
+    Stripe::setApiKey(env('STRIPE_SECRET'));
+
+    $intent = \Stripe\PaymentIntent::create([
+        'amount' => $amount,
+        'currency' => 'usd',
+        'description' => "Ad Payment for {$days} days",
+        'metadata' => [
+            'payment_type' => 'ad',
+            'user_id' => $request->user_id,
+            'title' => $request->title,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'region_id' => $request->region_id,
+            'industry_id' => $request->industry_id
+        ]
+    ]);
+
+    return response()->json([
+        'status' => true,
+        'clientSecret' => $intent->client_secret,
+        'public_key' => env('STRIPE_KEY')
+    ]);
+}
+
 
 
     // Update Ad
@@ -111,8 +122,6 @@ class AdController extends Controller
         ]);
     }
 
-
-
     // Delete Ad
     public function destroy($id)
     {
@@ -138,5 +147,37 @@ class AdController extends Controller
         $ad->save();
 
         return response()->json(['status' => true, 'message' => 'Status updated', 'data' => $ad]);
+    }
+
+    public function fetchAd()
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        // 🟢 Admin → All ads
+        if ($user->role === 'admin') {
+            $ads = \App\Models\Ad::orderBy('id', 'desc')->get();
+
+            return response()->json([
+                'status' => true,
+                'data' => $ads
+            ]);
+        }
+
+        // 🟢 Normal User → Only own ads
+        $ads = \App\Models\Ad::where('user_id', $user->id)
+            ->orderBy('id', 'desc')
+            ->get();
+
+        return response()->json([
+            'status' => true,
+            'data' => $ads
+        ]);
     }
 }

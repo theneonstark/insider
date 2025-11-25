@@ -33,6 +33,8 @@ Route::group(['prefix' => 'auth'], function () {
     Route::post('/passwordChange', [HomeController::class, 'updatePassword']);
 });
 
+Route::get('/allUsers', [SearchController::class, 'allUsers']);
+
 Route::group(['prefix' => 'search'], function () {
     Route::get('/', [SearchController::class, 'index']);
     Route::post('/filter', [SearchController::class, 'search']);
@@ -81,6 +83,7 @@ Route::group(['middleware'=>'auth'], function () {
     });
     
     Route::group(['prefix' => 'ads'], function () {
+        Route::get('/your', [AdController::class, 'fetchAd']);
         Route::post('/create', [AdController::class, 'store']);
         Route::post('/{id}', [AdController::class, 'update']);
         Route::delete('/{id}', [AdController::class, 'destroy']);

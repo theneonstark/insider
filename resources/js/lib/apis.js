@@ -126,6 +126,10 @@ export const filter = async(data) => {
     }
 }
 
+export const allUsers = async () => {
+  return await axios.get('/allUsers');
+};
+
 export const sparkleUser = async() => {
   try{
     const res = await axios.get('/data/sparkle')
@@ -157,6 +161,7 @@ export const shinePlusUser = async() => {
 }
 
 export const getAds = () => axios.get('/ads/data');
+export const userAds = () => axios.get('/ads/your')
 export const CreateAds = (data) => axios.post('/ads/create', data, {
     headers: { "Content-Type": "multipart/form-data" }
   });

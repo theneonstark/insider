@@ -1,13 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Eye } from "lucide-react";
+import { Eye, Star } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { increaseView } from "@/lib/apis"; // 👈 import API
 import { Link } from "@inertiajs/react";
 
-const WelcomeMemberCard = ({ id, name, business_type, tier, image, views = 0, onViewProfile }) => {
+const WelcomeMemberCard = ({ id, name, industry,tier, region, image, views = 0, onViewProfile, isFeatured  }) => {
+  
   const [viewCount, setViewCount] = useState(views);
   const { toast } = useToast();
 
@@ -24,7 +25,21 @@ const WelcomeMemberCard = ({ id, name, business_type, tier, image, views = 0, on
       const res = await increaseView(id);
 
       if (res.status) {
-        setViewCount(res.views); // update from backend
+        const updatedViews = Number(res.views); // ensure number
+        setViewCount(updatedViews);
+
+        // pass full updated member to parent (so modal gets fresh value)
+        if (onViewProfile) {
+          onViewProfile({
+            id,
+            name,
+            industry,
+            region,
+            tier,
+            image,
+            views: updatedViews
+          });
+        }
       }
 
       // 🔥 Optional toast
@@ -34,7 +49,17 @@ const WelcomeMemberCard = ({ id, name, business_type, tier, image, views = 0, on
       });
 
       // 🔥 Open profile modal
-      if (onViewProfile) onViewProfile();
+      if (onViewProfile) {
+        onViewProfile({
+          id,
+          name,
+          industry,
+          region,
+          tier,
+          image,
+          views: Number(res.views)
+        });
+      }
     } catch (error) {
       console.error("Failed to increase view:", error);
       toast({
@@ -45,7 +70,12 @@ const WelcomeMemberCard = ({ id, name, business_type, tier, image, views = 0, on
   };
 
   return (
-    <Card className="animate-fade-in hover-lift overflow-hidden">
+    <Card className="relative animate-fade-in hover-lift overflow-hidden">
+    {isFeatured && (
+      <div className="absolute top-2 right-2 bg-yellow-500 text-white p-1 rounded-full shadow-md z-50">
+        <Star size={16} />
+      </div>
+    )}
       <div className="aspect-square overflow-hidden">
         <img 
           src={image} 
@@ -58,9 +88,9 @@ const WelcomeMemberCard = ({ id, name, business_type, tier, image, views = 0, on
         <div className="flex items-start justify-between mb-2">
           <div>
             <h3 className="font-semibold text-lg">{name}</h3>
-            <p className="text-sm text-muted-foreground">{business_type}</p>
+            <p className="text-sm text-muted-foreground">{industry?.industryName} ({region?.regionName})</p>
           </div>
-          <Badge className={tierColors[tier]}>{tier}</Badge>
+          <Badge className={tierColors[tier]}>{tier?.tier_name}</Badge>
         </div>
 
         <div className="flex items-center gap-2 text-sm text-muted-foreground">

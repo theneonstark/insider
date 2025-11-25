@@ -107,8 +107,8 @@ class StripeWebhookController
 
                 if ($user) {
                     $start = ($user->featured_valid && $user->featured_valid > now())
-                                ? $user->featured_valid
-                                : now();
+                        ? $user->featured_valid
+                        : now();
                     $user->featured = 1;
                     $user->featured_valid = $start->copy()->addDays($days);
                     $user->save();
@@ -121,6 +121,62 @@ class StripeWebhookController
                 } else {
                     \Log::error('User not found for feature', ['user_id' => $userId]);
                 }
+            }
+
+            // **************************************
+            // AD PAYMENT CALLBACK
+            // **************************************
+            if ($paymentType === "ad") {
+
+                $userId = $pi->metadata->user_id ?? null;
+                $title = $pi->metadata->title ?? null;
+                $startDate = $pi->metadata->start_date ?? null;
+                $endDate = $pi->metadata->end_date ?? null;
+
+                $regionId = $pi->metadata->region_id ?? null;
+                $industryId = $pi->metadata->industry_id ?? null;
+                $imageName = $pi->metadata->image ?? null; // image already saved earlier
+
+                if (!$userId || !$title || !$startDate || !$endDate) {
+                    \Log::error("Missing ad metadata", [
+                        'pi_id' => $pi->id,
+                        'meta' => $pi->metadata
+                    ]);
+                    return response('Missing ad metadata', 400);
+                }
+
+                // 🟢 Save payment in Payments Table
+                Payment::updateOrCreate(
+                    ['payment_intent_id' => $pi->id],
+                    [
+                        'user_id' => $userId,
+                        'plan_title' => "Advertisement Payment",
+                        'tier_id' => null,
+                        'amount' => $pi->amount_received / 100,
+                        'currency' => strtoupper($pi->currency),
+                        'status' => 'succeeded',
+                        'stripe_data' => $pi->toArray(),
+                    ]
+                );
+
+                // 🟢 Finally CREATE AD in ads table
+                \App\Models\Ad::create([
+                    'user_id' => $userId,
+                    'title' => $title,
+                    'start_date' => $startDate,
+                    'end_date' => $endDate,
+                    'active' => 1,
+                    'region_id' => $regionId ?: null,
+                    'industry_id' => $industryId ?: null,
+                    'image' => $imageName ?: null,
+                ]);
+
+                \Log::info("Ad created after payment success", [
+                    'user_id' => $userId,
+                    'title' => $title,
+                    'start_date' => $startDate,
+                    'end_date' => $endDate,
+                ]);
             }
         }
 
