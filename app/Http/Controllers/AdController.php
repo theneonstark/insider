@@ -40,13 +40,24 @@ class AdController extends Controller
         ]);
     }
 
-    // Calculate days
-    $days = Carbon::parse($request->start_date)->diffInDays(Carbon::parse($request->end_date)) + 1;
-    $amount = $days * 100;   // $1 per day → Stripe needs cents
+    // ⭐ 1. SAVE IMAGE PERMANENTLY (NOT TEMP)
+    $imagePath = null;
 
-    // Create payment intent
+    if ($request->hasFile('image')) {
+        $file = $request->file('image');
+        $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        $file->move(public_path('ads'), $fileName);
+
+        $imagePath = 'ads/' . $fileName;
+    }
+
+    // ⭐ 2. CALCULATE AMOUNT ($1/day)
+    $days = Carbon::parse($request->start_date)->diffInDays(Carbon::parse($request->end_date)) + 1;
+    $amount = $days * 100; // in cents
+
     Stripe::setApiKey(env('STRIPE_SECRET'));
 
+    // ⭐ 3. CREATE STRIPE INTENT (NO AD YET)
     $intent = \Stripe\PaymentIntent::create([
         'amount' => $amount,
         'currency' => 'usd',
@@ -55,10 +66,12 @@ class AdController extends Controller
             'payment_type' => 'ad',
             'user_id' => $request->user_id,
             'title' => $request->title,
+            'link' => $request->link,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'region_id' => $request->region_id,
-            'industry_id' => $request->industry_id
+            'industry_id' => $request->industry_id,
+            'image' => $imagePath, // ⭐ FINAL PATH GOES HERE
         ]
     ]);
 

@@ -128,24 +128,22 @@ class StripeWebhookController
             // **************************************
             if ($paymentType === "ad") {
 
-                $userId = $pi->metadata->user_id ?? null;
-                $title = $pi->metadata->title ?? null;
-                $startDate = $pi->metadata->start_date ?? null;
-                $endDate = $pi->metadata->end_date ?? null;
+                $meta = $pi->metadata;
 
-                $regionId = $pi->metadata->region_id ?? null;
-                $industryId = $pi->metadata->industry_id ?? null;
-                $imageName = $pi->metadata->image ?? null; // image already saved earlier
+                $userId = $meta->user_id ?? null;
+                $title = $meta->title ?? null;
+                $start = $meta->start_date ?? null;
+                $end = $meta->end_date ?? null;
+                $region = $meta->region_id ?? null;
+                $industry = $meta->industry_id ?? null;
+                $image = $meta->image ?? null;
 
-                if (!$userId || !$title || !$startDate || !$endDate) {
-                    \Log::error("Missing ad metadata", [
-                        'pi_id' => $pi->id,
-                        'meta' => $pi->metadata
-                    ]);
-                    return response('Missing ad metadata', 400);
+                if (!$userId || !$title || !$start || !$end) {
+                    \Log::error("Ad metadata missing", $meta->toArray());
+                    return response('Missing metadata', 400);
                 }
 
-                // 🟢 Save payment in Payments Table
+                // Save payment
                 Payment::updateOrCreate(
                     ['payment_intent_id' => $pi->id],
                     [
@@ -159,23 +157,23 @@ class StripeWebhookController
                     ]
                 );
 
-                // 🟢 Finally CREATE AD in ads table
+                // ⭐ FINALLY CREATE AD
                 \App\Models\Ad::create([
-                    'user_id' => $userId,
-                    'title' => $title,
-                    'start_date' => $startDate,
-                    'end_date' => $endDate,
-                    'active' => 1,
-                    'region_id' => $regionId ?: null,
-                    'industry_id' => $industryId ?: null,
-                    'image' => $imageName ?: null,
+                    'user_id'    => $userId,
+                    'title'      => $title,
+                    'link'       => $meta->link ?? null,
+                    'start_date' => $start,
+                    'end_date'   => $end,
+                    'region_id'  => $region ?: null,
+                    'industry_id' => $industry ?: null,
+                    'image'      => $image ?: null,
+                    'active'     => 1
                 ]);
 
-                \Log::info("Ad created after payment success", [
+                \Log::info("Ad Created Successfully via Callback", [
                     'user_id' => $userId,
                     'title' => $title,
-                    'start_date' => $startDate,
-                    'end_date' => $endDate,
+                    'image' => $image
                 ]);
             }
         }
