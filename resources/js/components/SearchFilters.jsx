@@ -58,7 +58,7 @@ const SearchFilters = ({ industries = [], regions = [], onSearch }) => {
           <SelectContent className="bg-popover">
             {regions.length > 0 ? (
               regions.map((region) => (
-                <SelectItem key={region.regionId} value={region.regionName}>
+                <SelectItem key={region.regionId} value={region.regionId}>
                   {region.regionName}
                 </SelectItem>
               ))
@@ -77,7 +77,7 @@ const SearchFilters = ({ industries = [], regions = [], onSearch }) => {
           <SelectContent className="bg-popover">
             {industries.length > 0 ? (
               industries.map((ind) => (
-                <SelectItem key={ind.industryId} value={ind.industryName}>
+                <SelectItem key={ind.industryId} value={ind.industryId}>
                   {ind.industryName}
                 </SelectItem>
               ))

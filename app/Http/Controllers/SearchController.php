@@ -25,11 +25,11 @@ class SearchController
             }
 
             if ($request->filled('location')) {
-                $query->where('location', 'like', '%' . $request->location . '%');
+                $query->where('state',  $request->location );
             }
 
             if ($request->filled('industry')) {
-                $query->where('industry', 'like', '%' . $request->industry . '%');
+                $query->where('business_type',  $request->industry );
             }
 
             // 🧠 Check if any filter is applied
@@ -42,6 +42,8 @@ class SearchController
                 // Agar filter nahi hai to 3 random users laao
                 $users = $query->inRandomOrder()->take(3)->get();
             }
+
+            $users = $query->with(['industry', 'region', 'tier'])->get();
 
             return response()->json([
                 'status' => true,

@@ -12,12 +12,6 @@ const WelcomeMemberCard = ({ id, featured,name, industry,tier, region, image, vi
   const [viewCount, setViewCount] = useState(views);
   const { toast } = useToast();
 
-  const tierColors = {
-    Shine: "bg-secondary text-secondary-foreground",
-    Sparkle: "bg-primary text-primary-foreground",
-    Elite: "bg-accent text-accent-foreground"
-  };
-
   // 🧠 "View" click logic
   const handleView = async () => {
     try {

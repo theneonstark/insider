@@ -130,29 +130,33 @@ const Welcome = () => {
 
     const hasFilters =
       (searchFilters.name && searchFilters.name.trim() !== "") ||
-      (searchFilters.industry && searchFilters.industry.length > 0) ||
-      (searchFilters.region && searchFilters.region.length > 0);
+      (searchFilters.industry && searchFilters.industry !== "") ||
+      (searchFilters.location && searchFilters.location !== "");
 
-    // No Search → default 3 users
+    // If no filters → Load default
     if (!hasFilters) {
       await loadAllUsers();
       setSearching(false);
       return;
     }
 
-    // Perform search
     try {
       const res = await filter(searchFilters);
+
       if (res.status === 200 && res.data.status) {
         const users = res.data.data.filter((u) => u.role !== "admin");
         setMembers(users);
+      } else {
+        setMembers([]); // No results
       }
-    } catch {
+    } catch (err) {
+      console.error(err);
       toast.error("Search failed");
     }
 
     setSearching(false);
   };
+
 
   const handleJoinTier = (tier) => {
     if (!user) return (window.location.href = "/login");
@@ -251,18 +255,38 @@ const Welcome = () => {
                 Loading plans...
               </div>
             ) : plans.length > 0 ? (
-              <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                {plans.map((tier, index) => (
-                  <MembershipCard
-                    key={index}
-                    title={tier.title || tier.name}
-                    price={`$${tier.price} / year`}
-                    features={tier.features || []}
-                    highlighted={tier.highlighted || false}
-                    onJoin={() => handleJoinTier(tier)}
-                  />
-                ))}
-              </div>
+
+              <Carousel className="w-full max-w-6xl mx-auto" 
+                opts={{
+                  align: "start",
+                  loop: true,
+                }} plugins={[
+                  Autoplay({
+                    delay: 2000,
+                  }),
+                ]}
+              >
+                <CarouselContent className="mt-4 -ml-2 md:-ml-4" >
+                  {plans.map((tier, index) => (
+                    <CarouselItem 
+                      key={index} 
+                      className="pl-2 md:pl-4 basis-1/1 md:basis-1/2 lg:basis-1/3"
+                    >
+                      <MembershipCard
+                        title={tier.title || tier.name}
+                        price={`$${tier.price} / year`}
+                        features={tier.features || []}
+                        highlighted={tier.highlighted || false}
+                        onJoin={() => handleJoinTier(tier)}
+                      />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+
+                <CarouselPrevious />
+                <CarouselNext />
+              </Carousel>
+
             ) : (
               <div className="text-center text-muted-foreground py-12">
                 No plans available.
@@ -271,6 +295,7 @@ const Welcome = () => {
           </div>
         </section>
       )}
+
 
       {/* Search & Listing */}
       <section className="py-20 bg-background">
