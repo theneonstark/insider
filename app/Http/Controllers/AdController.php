@@ -20,69 +20,114 @@ class AdController extends Controller
 
     // Create Ad
     public function store(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'user_id' => 'required|exists:users,id',
-        'region_id' => 'nullable|exists:regions,regionId',
-        'industry_id' => 'nullable|exists:industries,industryId',
-        'title' => 'required|string|max:255',
-        'link' => 'nullable|string',
-        'image' => 'nullable|image',
-        'start_date' => 'required|date',
-        'end_date' => 'required|date|after_or_equal:start_date',
-        'active' => 'boolean'
-    ]);
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'region_id' => 'nullable|exists:regions,regionId',
+            'industry_id' => 'nullable|exists:industries,industryId',
+            'title' => 'required|string|max:255',
+            'link' => 'nullable|string',
+            'image' => 'nullable|image',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'active' => 'boolean'
+        ]);
 
-    if ($validator->fails()) {
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()
+            ]);
+        }
+
+        // ⭐ 1. SAVE IMAGE PERMANENTLY (NOT TEMP)
+        $imagePath = null;
+
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('ads'), $fileName);
+
+            $imagePath = 'ads/' . $fileName;
+        }
+
+        // ⭐ 2. CALCULATE AMOUNT ($1/day)
+        $days = Carbon::parse($request->start_date)->diffInDays(Carbon::parse($request->end_date)) + 1;
+        $amount = $days * 100; // in cents
+
+        Stripe::setApiKey(env('STRIPE_SECRET'));
+
+        // ⭐ 3. CREATE STRIPE INTENT (NO AD YET)
+        $intent = \Stripe\PaymentIntent::create([
+            'amount' => $amount,
+            'currency' => 'usd',
+            'description' => "Ad Payment for {$days} days",
+            'metadata' => [
+                'payment_type' => 'ad',
+                'user_id' => $request->user_id,
+                'title' => $request->title,
+                'link' => $request->link,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'region_id' => $request->region_id,
+                'industry_id' => $request->industry_id,
+                'image' => $imagePath, // ⭐ FINAL PATH GOES HERE
+            ]
+        ]);
+
         return response()->json([
-            'status' => false,
-            'errors' => $validator->errors()
+            'status' => true,
+            'clientSecret' => $intent->client_secret,
+            'public_key' => env('STRIPE_KEY')
         ]);
     }
 
-    // ⭐ 1. SAVE IMAGE PERMANENTLY (NOT TEMP)
-    $imagePath = null;
+    public function adminStore(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'region_id' => 'nullable|exists:regions,regionId',
+            'industry_id' => 'nullable|exists:industries,industryId',
+            'title' => 'required|string|max:255',
+            'link' => 'nullable|string',
+            'image' => 'nullable|image',
+            'active' => 'boolean'
+        ]);
 
-    if ($request->hasFile('image')) {
-        $file = $request->file('image');
-        $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-        $file->move(public_path('ads'), $fileName);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
 
-        $imagePath = 'ads/' . $fileName;
-    }
+        // ----------- ⭐ SAVE IMAGE ----------
+        $imagePath = null;
 
-    // ⭐ 2. CALCULATE AMOUNT ($1/day)
-    $days = Carbon::parse($request->start_date)->diffInDays(Carbon::parse($request->end_date)) + 1;
-    $amount = $days * 100; // in cents
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('ads'), $fileName);
+            $imagePath = 'ads/' . $fileName;
+        }
 
-    Stripe::setApiKey(env('STRIPE_SECRET'));
-
-    // ⭐ 3. CREATE STRIPE INTENT (NO AD YET)
-    $intent = \Stripe\PaymentIntent::create([
-        'amount' => $amount,
-        'currency' => 'usd',
-        'description' => "Ad Payment for {$days} days",
-        'metadata' => [
-            'payment_type' => 'ad',
+        // ----------- ⭐ INSERT INTO DATABASE ----------
+        $ad = \App\Models\Ad::create([
             'user_id' => $request->user_id,
-            'title' => $request->title,
-            'link' => $request->link,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
             'region_id' => $request->region_id,
             'industry_id' => $request->industry_id,
-            'image' => $imagePath, // ⭐ FINAL PATH GOES HERE
-        ]
-    ]);
+            'title' => $request->title,
+            'link' => $request->link,
+            'image' => $imagePath,
+            'active' => $request->active ?? 0,
+        ]);
 
-    return response()->json([
-        'status' => true,
-        'clientSecret' => $intent->client_secret,
-        'public_key' => env('STRIPE_KEY')
-    ]);
-}
-
-
+        return response()->json([
+            'status' => true,
+            'message' => 'Ad created successfully!',
+            'data' => $ad
+        ], 201);
+    }
 
     // Update Ad
     public function update(Request $request, $id)

@@ -165,6 +165,9 @@ export const userAds = () => axios.get('/ads/your')
 export const CreateAds = (data) => axios.post('/ads/create', data, {
     headers: { "Content-Type": "multipart/form-data" }
   });
+export const CreateAdminAds = (data) => axios.post('/admin/ads/create', data, {
+    headers: { "Content-Type": "multipart/form-data" }
+  });
 export const updateAd = (id, data) => axios.post(`/ads/${id}`, data, {
     headers: { "Content-Type": "multipart/form-data" }
   });

@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MessageCircle, Eye, Star, Award, Bell, Search, Upload, X } from "lucide-react";
+import { MessageCircle, Eye, Star, Award, Bell, Search, Upload, X, Menu } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import ProfileViewModal from "@/components/ProfileViewModal";
@@ -64,6 +64,7 @@ const Dashboard = (userData) => {
   const [adActive, setAdActive] = useState(false);
   const [adPaymentOpen, setAdPaymentOpen] = useState(false);
   const [adPayment, setAdPayment] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const fetchFilters = async () => {
@@ -750,38 +751,64 @@ const handlePasswordChange = async () => {
 
               
               <div className="pt-6 border-t">
-                <h3 className="font-semibold mb-4">Your Ads</h3>
-                <div className="space-y-3">
-                  {ads.map((ad) => (
-                    <div key={ad.id} className="flex items-center gap-4 p-4 bg-muted rounded-lg">
-                      {ad.image && (
-                        <img 
-                          src={ad.image} 
-                          alt={ad.title} 
-                          className="w-16 h-16 object-cover rounded"
-                        />
-                      )}
-                      <div className="flex-1">
-                        <h4 className="font-semibold">{ad.title}</h4>
-                        <p className="text-sm text-muted-foreground">{ad.description}</p>
-                      </div>
-                      <Badge variant={ad?.end_date ? "secondary" : "secondary"} className="p-2">
-                        Valid Date : {ad.end_date}
-                      </Badge>
-                      <Badge variant={ad.active ? "default" : "secondary"} className="p-2">
-                        {ad.active ? "Active" : "Inactive"}
-                      </Badge>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => handleEditAd(ad)}
-                      >
-                        Edit
-                      </Button>
-                    </div>
-                  ))}
+            <h3 className="font-semibold mb-4">Your Ads</h3>
+
+            <div className="space-y-3">
+              {ads.map((ad) => (
+                <div
+                  key={ad.id}
+                  className="
+                    p-4 bg-muted rounded-lg 
+                    flex flex-col sm:flex-row sm:items-center gap-4
+                  "
+                >
+                  {/* Image */}
+                  {ad.image && (
+                    <img
+                      src={ad.image}
+                      alt={ad.title}
+                      className="w-20 h-20 sm:w-16 sm:h-16 object-cover rounded mx-auto sm:mx-0"
+                    />
+                  )}
+
+                  {/* Content */}
+                  <div className="flex-1 text-center sm:text-left">
+                    <h4 className="font-semibold">{ad.title}</h4>
+                    <p className="text-sm text-muted-foreground">{ad.description}</p>
+                  </div>
+
+                  {/* Badges + Edit Button */}
+                  <div className="
+                    flex flex-wrap sm:flex-nowrap 
+                    items-center justify-center sm:justify-end 
+                    gap-2 sm:gap-3
+                    w-full sm:w-auto
+                  ">
+                    <Badge variant="secondary" className="px-3 py-1">
+                      Valid: {ad.end_date || "N/A"}
+                    </Badge>
+
+                    <Badge
+                      variant={ad.active ? "default" : "secondary"}
+                      className="px-3 py-1"
+                    >
+                      {ad.active ? "Active" : "Inactive"}
+                    </Badge>
+
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleEditAd(ad)}
+                      className="w-full sm:w-auto"
+                    >
+                      Edit
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              ))}
+            </div>
+          </div>
+
             </CardContent>
           </Card>
         );
@@ -985,15 +1012,50 @@ const handlePasswordChange = async () => {
 
   return (
     <div className="min-h-screen bg-background flex">
-      <DashboardSidebar activeSection={activeSection} onSectionChange={setActiveSection} />
+       {/* DESKTOP SIDEBAR */}
+  <div className="hidden md:flex">
+    <DashboardSidebar 
+      activeSection={activeSection} 
+      onSectionChange={setActiveSection} 
+    />
+  </div>
+
+  {/* MOBILE SIDEBAR */}
+  <div
+    className={`
+      fixed inset-y-0 left-0 z-50 md:hidden 
+      w-[260px]
+      transform transition-transform duration-300
+      ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+    `}
+  >
+    <DashboardSidebar
+      mobile
+      activeSection={activeSection}
+      onSectionChange={setActiveSection}
+      onClose={() => setSidebarOpen(false)}
+    />
+  </div>
 
       <div className="flex-1 flex flex-col">
         <header className="bg-card border-b border-[#F3D6E3] sticky top-0 z-10">
           <div className="px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-4 flex-1 max-w-md">
+
+            {/* 👇👇 ADD THIS BUTTON 👇👇 */}
+            <button
+              className="md:hidden p-2 rounded hover:bg-muted"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <Menu className="w-6 h-6 text-foreground" />
+            </button>
+
+            {/* EXISTING SEARCH BAR SECTION */}
+            <div className="flex items-center gap-4 flex-1 max-w-md ml-3 md:ml-0">
               <Search className="w-5 h-5 text-muted-foreground" />
               <Input placeholder="Search..." className="border-none bg-muted" />
             </div>
+
+            {/* RIGHT SIDE BUTTONS */}
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="icon">
                 <Bell className="w-5 h-5" />
@@ -1003,8 +1065,10 @@ const handlePasswordChange = async () => {
                 <AvatarFallback>{userProfile.name?.[0] || "G"}</AvatarFallback>
               </Avatar>
             </div>
+
           </div>
         </header>
+
 
         <div className="p-6 space-y-4 bg-muted/30">
           {/* <DashboardBanner

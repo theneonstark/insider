@@ -5,12 +5,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Users, DollarSign, Award, BarChart3, Bell, Search, Upload, X } from "lucide-react";
+import { Users, DollarSign, Award, BarChart3, Bell, Search, Upload, X, Menu } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import AdminSidebar from "@/components/AdminSidebar";
 import ProfileViewModal from "@/components/ProfileViewModal";
 import EditProfileModal from "@/components/EditProfileModal";
-import { addFeature, CreateAds, deleteAd, getAds, removeFeature, revenueByTier, revenueData, updateAd, updateAdminSettings, updateAdStatus, userdata } from "@/lib/apis";
+import { addFeature, CreateAdminAds, deleteAd, getAds, removeFeature, revenueByTier, revenueData, updateAd, updateAdminSettings, updateAdStatus, userdata } from "@/lib/apis";
 import toast, { Toaster } from "react-hot-toast";
 import AddUserModal from "@/components/AddUserModal";
 import { usePage } from "@inertiajs/react";
@@ -46,6 +46,7 @@ const Admin = () => {
   const [adTitle, setAdTitle] = useState("");
   const [adLink, setAdLink] = useState("");
   const [adActive, setAdActive] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { props } = usePage();
   const admin = props.auth?.user; // ✅ Admin data from Inertia props
   
@@ -107,7 +108,7 @@ const Admin = () => {
     }
 
     try {
-      const res = await CreateAds(form);
+      const res = await CreateAdminAds(form);
 
       if (res.data.status) {
         toast.success("Ad created!");
@@ -743,16 +744,44 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-background flex">
-      <AdminSidebar activeSection={activeSection} onSectionChange={setActiveSection} />
+      <div className="hidden md:block">
+        <AdminSidebar
+          activeSection={activeSection}
+          onSectionChange={setActiveSection}
+        />
+      </div>
+
+      <div
+        className={`
+          fixed inset-y-0 left-0 z-50 md:hidden
+          w-[270px]
+          transform transition-transform duration-300
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+        `}
+      >
+        <AdminSidebar
+          mobile
+          activeSection={activeSection}
+          onSectionChange={setActiveSection}
+          onClose={() => setSidebarOpen(false)}
+        />
+      </div>
       
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <header className="bg-card border-b border-[#F2C1D3] sticky top-0 z-10">
           <div className="px-6 py-4 flex items-center justify-between">
+            <button 
+              className="md:hidden p-2 rounded hover:bg-muted"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <Menu className="w-6 h-6 text-foreground" />
+            </button>
             <div className="flex items-center gap-4 flex-1 max-w-md">
               <Search className="w-5 h-5 text-muted-foreground" />
               <Input placeholder="Search..." className="border-none bg-muted" />
             </div>
+
             
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="icon">

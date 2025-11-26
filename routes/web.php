@@ -80,6 +80,7 @@ Route::group(['middleware'=>'auth'], function () {
             Route::post('/remove', [AdminController::class, 'featureRemove']);
         });
         Route::post('/setting/update', [AdminController::class, 'settingUpdate']);
+        Route::post('ads/create', [AdController::class, 'adminStore']);
     });
     
     Route::group(['prefix' => 'ads'], function () {

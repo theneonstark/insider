@@ -136,102 +136,112 @@ const LandingPageEditor = () => {
 
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl font-heading">Landing Page Editor</CardTitle>
-          <CardDescription>
-            Customize your personal landing page to showcase your services and expertise
-          </CardDescription>
-        </CardHeader>
-        {user_tier === 'Shine Plus' ? (
-          <CardContent>
-          <div className="flex gap-3 mb-6">
-            {/* <Button onClick={handlePreview} variant="outline" className="gap-2">
-              <Eye className="w-4 h-4" /> Preview
-            </Button> */}
-            <Button onClick={handleSave} className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2">
+  <div className="space-y-6">
+
+    {/* Main Card */}
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="text-xl sm:text-2xl font-heading">
+          Landing Page Editor
+        </CardTitle>
+        <CardDescription className="text-sm sm:text-base">
+          Customize your personal landing page to showcase your services & expertise
+        </CardDescription>
+      </CardHeader>
+
+      {user_tier === "Shine Plus" ? (
+        <CardContent className="space-y-6">
+
+          {/* Save + Preview Buttons Row */}
+          <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+            <Button
+              onClick={handleSave}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 w-full sm:w-auto"
+            >
               <Save className="w-4 h-4" /> Save & Publish
             </Button>
           </div>
 
+          {/* TABS */}
           <Tabs defaultValue="about" className="space-y-6">
-            <TabsList className="grid grid-cols-4 w-full">
+            
+            {/* Tabs list responsive */}
+            <TabsList className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full mb-10">
               <TabsTrigger value="about">About Me</TabsTrigger>
               <TabsTrigger value="services">Products / Services</TabsTrigger>
               <TabsTrigger value="testimonials">Testimonials</TabsTrigger>
               <TabsTrigger value="offers">Offers</TabsTrigger>
             </TabsList>
 
-            {/* About Me */}
+            {/* ---------- ABOUT ME ---------- */}
             <TabsContent value="about" className="space-y-4">
-              {/* <div>
-                <Label>Headline</Label>
-                <Input
-                  value={aboutMe.headline || ""}
-                  onChange={(e) => setAboutMe({ ...aboutMe, headline: e.target.value })}
-                  placeholder="Your professional headline"
-                />
-              </div> */}
               <div>
                 <Label>Bio</Label>
                 <Textarea
                   rows={6}
+                  className="min-h-[120px] sm:min-h-[150px]"
                   value={aboutMe.bio || ""}
-                  onChange={(e) => setAboutMe({ ...aboutMe, bio: e.target.value })}
+                  onChange={(e) =>
+                    setAboutMe({ ...aboutMe, bio: e.target.value })
+                  }
                   placeholder="Tell your story..."
                 />
               </div>
-              {/* <div>
-                <Label>Tagline</Label>
-                <Input
-                  value={aboutMe.tagline || ""}
-                  onChange={(e) => setAboutMe({ ...aboutMe, tagline: e.target.value })}
-                  placeholder="Your catchy tagline"
-                />
-              </div> */}
             </TabsContent>
 
-            {/* Services */}
+            {/* ---------- SERVICES ---------- */}
             <TabsContent value="services" className="space-y-4">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-semibold">My Favorite Product / Services</h3>
-                <Button onClick={addService} size="sm" className="gap-2">
+              <div className="flex justify-between items-center">
+                <h3 className="font-semibold text-base sm:text-lg">
+                  My Favorite Product / Services
+                </h3>
+                <Button size="sm" onClick={addService} className="gap-2">
                   <Plus className="w-4 h-4" /> Add
                 </Button>
               </div>
+
               {services.map((service) => (
-                <Card key={service.id} className="p-4">
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1 space-y-3">
-                        <div>
-                          <Label>Service Title</Label>
-                          <Input
-                            value={service.title}
-                            onChange={(e) => updateService(service.id, "title", e.target.value)}
-                            placeholder="e.g., Brand Strategy Consultation"
-                          />
-                        </div>
-                        <div>
-                          <Label>Description</Label>
-                          <Textarea
-                            rows={3}
-                            value={service.description}
-                            onChange={(e) => updateService(service.id, "description", e.target.value)}
-                            placeholder="Describe your service..."
-                          />
-                        </div>
-                        {/* <div>
-                          <Label>Price</Label>
-                          <Input
-                            value={service.price}
-                            onChange={(e) => updateService(service.id, "price", e.target.value)}
-                            placeholder="e.g., $500"
-                          />
-                        </div> */}
-                      </div>
-                      <Button variant="ghost" size="icon" onClick={() => deleteService(service.id)} className="ml-2 text-destructive">
+                <Card
+                  key={service.id}
+                  className="p-3 sm:p-4 rounded-xl shadow-sm"
+                >
+                  <div className="flex flex-col gap-4">
+                    <div className="">
+                      <Label>Service Title</Label>
+                      <Input
+                        className="mt-1"
+                        value={service.title}
+                        onChange={(e) =>
+                          updateService(service.id, "title", e.target.value)
+                        }
+                        placeholder="Service title..."
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Description</Label>
+                      <Textarea
+                        rows={3}
+                        className="min-h-[90px] sm:min-h-[110px]"
+                        value={service.description}
+                        onChange={(e) =>
+                          updateService(
+                            service.id,
+                            "description",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Description..."
+                      />
+                    </div>
+
+                    <div className="flex justify-end">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => deleteService(service.id)}
+                        className="text-destructive"
+                      >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
@@ -240,55 +250,77 @@ const LandingPageEditor = () => {
               ))}
             </TabsContent>
 
-            {/* Testimonials */}
+            {/* ---------- TESTIMONIALS ---------- */}
             <TabsContent value="testimonials" className="space-y-4">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-semibold">Client Testimonials</h3>
-                <Button onClick={addTestimonial} size="sm" className="gap-2">
+              <div className="flex justify-between items-center">
+                <h3 className="font-semibold text-base sm:text-lg">
+                  Client Testimonials
+                </h3>
+                <Button size="sm" onClick={addTestimonial} className="gap-2">
                   <Plus className="w-4 h-4" /> Add
                 </Button>
               </div>
+
               {testimonials.map((testimonial) => (
-                <Card key={testimonial.id} className="p-4">
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1 space-y-3">
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <Label>Name</Label>
-                            <Input
-                              value={testimonial.name}
-                              onChange={(e) => updateTestimonial(testimonial.id, "name", e.target.value)}
-                            />
-                          </div>
-                          <div>
-                            <Label>Role/Company</Label>
-                            <Input
-                              value={testimonial.role}
-                              onChange={(e) => updateTestimonial(testimonial.id, "role", e.target.value)}
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <Label>Content</Label>
-                          <Textarea
-                            rows={3}
-                            value={testimonial.content}
-                            onChange={(e) => updateTestimonial(testimonial.id, "content", e.target.value)}
-                          />
-                        </div>
-                        <div>
-                          {/* <Label>Rating</Label> */}
-                          <Input
-                            type="hidden"
-                            min="1"
-                            max="5"
-                            value={5}
-                            onChange={(e) => updateTestimonial(testimonial.id, "rating", e.target.value)}
-                          />
-                        </div>
+                <Card key={testimonial.id} className="p-3 sm:p-4 rounded-xl shadow">
+                  <div className="space-y-4">
+
+                    {/* Name & Role grid responsive */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <Label>Name</Label>
+                        <Input
+                          className="mt-1"
+                          value={testimonial.name}
+                          onChange={(e) =>
+                            updateTestimonial(
+                              testimonial.id,
+                              "name",
+                              e.target.value
+                            )
+                          }
+                        />
                       </div>
-                      <Button variant="ghost" size="icon" onClick={() => deleteTestimonial(testimonial.id)} className="ml-2 text-destructive">
+
+                      <div>
+                        <Label>Role / Company</Label>
+                        <Input
+                          className="mt-1"
+                          value={testimonial.role}
+                          onChange={(e) =>
+                            updateTestimonial(
+                              testimonial.id,
+                              "role",
+                              e.target.value
+                            )
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label>Content</Label>
+                      <Textarea
+                        rows={3}
+                        className="min-h-[90px] sm:min-h-[110px]"
+                        value={testimonial.content}
+                        onChange={(e) =>
+                          updateTestimonial(
+                            testimonial.id,
+                            "content",
+                            e.target.value
+                          )
+                        }
+                      />
+                    </div>
+
+                    <div className="flex justify-end">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => deleteTestimonial(testimonial.id)}
+                        className="text-destructive"
+                      >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
@@ -297,44 +329,50 @@ const LandingPageEditor = () => {
               ))}
             </TabsContent>
 
-            {/* Offers */}
+            {/* ---------- OFFERS ---------- */}
             <TabsContent value="offers" className="space-y-4">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-semibold">Promotional Offers</h3>
-                <Button onClick={addOffer} size="sm" className="gap-2">
+              <div className="flex justify-between items-center">
+                <h3 className="font-semibold text-base sm:text-lg">
+                  Promotional Offers
+                </h3>
+                <Button size="sm" onClick={addOffer} className="gap-2">
                   <Plus className="w-4 h-4" /> Add
                 </Button>
               </div>
+
               {offers.map((offer) => (
-                <Card key={offer.id} className="p-4">
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1 space-y-3">
-                        <div>
-                          <Label>Title</Label>
-                          <Input
-                            value={offer.title}
-                            onChange={(e) => updateOffer(offer.id, "title", e.target.value)}
-                          />
-                        </div>
-                        <div>
-                          <Label>Description</Label>
-                          <Textarea
-                            rows={2}
-                            value={offer.description}
-                            onChange={(e) => updateOffer(offer.id, "description", e.target.value)}
-                          />
-                        </div>
-                        {/* <div>
-                          <Label>Valid Until</Label>
-                          <Input
-                            type="date"
-                            value={offer.validUntil || ""}
-                            onChange={(e) => updateOffer(offer.id, "validUntil", e.target.value)}
-                          />
-                        </div> */}
-                      </div>
-                      <Button variant="ghost" size="icon" onClick={() => deleteOffer(offer.id)} className="ml-2 text-destructive">
+                <Card key={offer.id} className="p-3 sm:p-4 rounded-xl shadow">
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Title</Label>
+                      <Input
+                        className="mt-1"
+                        value={offer.title}
+                        onChange={(e) =>
+                          updateOffer(offer.id, "title", e.target.value)
+                        }
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Description</Label>
+                      <Textarea
+                        rows={2}
+                        className="min-h-[80px]"
+                        value={offer.description}
+                        onChange={(e) =>
+                          updateOffer(offer.id, "description", e.target.value)
+                        }
+                      />
+                    </div>
+
+                    <div className="flex justify-end">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => deleteOffer(offer.id)}
+                        className="text-destructive"
+                      >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
@@ -342,20 +380,21 @@ const LandingPageEditor = () => {
                 </Card>
               ))}
             </TabsContent>
+
           </Tabs>
         </CardContent>
-        ) : (
-           <div className="py-10 text-center text-muted-foreground border rounded-lg">
-            <h2 className="text-xl font-semibold mb-2">Upgrade Required</h2>
-            <p className="mb-4">Editing your landing page requires a Shine Plus membership.</p>
-            {/* <Button href="/upgrade" className="bg-primary text-white">
-              Upgrade to Shine Plus
-            </Button> */}
-          </div>
-        )}
-      </Card>
-    </div>
-  );
+      ) : (
+        <div className="py-10 text-center text-muted-foreground border rounded-lg">
+          <h2 className="text-xl font-semibold mb-2">Upgrade Required</h2>
+          <p className="mb-4">
+            Editing your landing page requires a Shine Plus membership.
+          </p>
+        </div>
+      )}
+    </Card>
+  </div>
+);
+
 };
 
 export default LandingPageEditor;

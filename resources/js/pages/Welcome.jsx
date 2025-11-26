@@ -283,8 +283,8 @@ const Welcome = () => {
                   ))}
                 </CarouselContent>
 
-                <CarouselPrevious />
-                <CarouselNext />
+                <CarouselPrevious className="hidden sm:flex"/>
+                <CarouselNext className="hidden sm:flex"/>
               </Carousel>
 
             ) : (
@@ -504,8 +504,8 @@ const Welcome = () => {
             </CarouselContent>
 
             {/* Navigation Buttons */}
-            <CarouselPrevious className="left-2 -translate-x-0" />
-            <CarouselNext className="right-2 translate-x-0" />
+            <CarouselPrevious className="left-2 hidden -translate-x-0" />
+            <CarouselNext className="right-2 hidden translate-x-0" />
           </Carousel>
         </CardContent>
       </Card>
