@@ -7,7 +7,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
@@ -31,13 +31,23 @@ const SearchFilters = ({ industries = [], regions = [], onSearch }) => {
 
     try {
       setIsLoading(true);
-      onSearch?.(payload); // ✅ Directly send filters to parent
+      onSearch?.(payload);
     } catch (error) {
       console.error("Search failed:", error);
       toast.error("Something went wrong while searching.");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleClear = () => {
+    setName("");
+    setLocation("");
+    setIndustry("");
+
+    onSearch?.({}); // send empty filters
+
+    toast.success("Filters cleared");
   };
 
   return (
@@ -90,14 +100,25 @@ const SearchFilters = ({ industries = [], regions = [], onSearch }) => {
         </Select>
       </div>
 
-      <Button
-        onClick={handleSearch}
-        disabled={isLoading}
-        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-      >
-        <Search className="w-4 h-4 mr-2" />
-        {isLoading ? "Searching..." : "Search"}
-      </Button>
+      <div className="flex gap-3">
+        <Button
+          onClick={handleSearch}
+          disabled={isLoading}
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+        >
+          <Search className="w-4 h-4 mr-2" />
+          {isLoading ? "Searching..." : "Search"}
+        </Button>
+
+        <Button
+          variant="outline"
+          onClick={handleClear}
+          className="w-full flex items-center gap-2"
+        >
+          <X className="w-4 h-4" />
+          Clear
+        </Button>
+      </div>
     </div>
   );
 };
