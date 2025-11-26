@@ -4,7 +4,7 @@ import { Check } from "lucide-react";
 
 const MembershipCard = ({ title, price, features = [], highlighted = false, onJoin }) => {
   return (
-    <Card className={`w-[395px] sm:w-full animate-fade-in hover-lift relative transition-all ${highlighted ? 'border-2 border-primary shadow-lg' : ''}`}>
+    <Card className={`animate-fade-in hover-lift relative transition-all ${highlighted ? 'border-2 border-primary shadow-lg' : ''}`}>
       {highlighted && (
         <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
           <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold">
@@ -20,12 +20,14 @@ const MembershipCard = ({ title, price, features = [], highlighted = false, onJo
         </CardDescription>
       </CardHeader>
 
-      <CardContent>
-        <ul className="space-y-3">
+      <CardContent className="flex-1 sm:w-full">
+        <ul className="space-y-4">
           {(Array.isArray(features) ? features : []).map((feature, index) => (
-            <li key={index} className="flex items-start gap-2">
+            <li key={index} className="flex items-start gap-3">
               <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-              <span className="text-sm">{feature}</span>
+              <span className="text-sm text-muted-foreground w-[340px] leading-relaxed break-words ">
+                {feature}
+              </span>
             </li>
           ))}
           {(!features || features.length === 0) && (

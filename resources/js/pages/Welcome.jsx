@@ -270,7 +270,7 @@ const Welcome = () => {
                   {plans.map((tier, index) => (
                     <CarouselItem 
                       key={index} 
-                      className="pl-2 md:pl-4 basis-1/1 md:basis-1/2 lg:basis-1/3"
+                      className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
                     >
                       <MembershipCard
                         title={tier.title || tier.name}
