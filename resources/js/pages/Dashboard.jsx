@@ -378,7 +378,7 @@ const handlePasswordChange = async () => {
                 </CardContent>
               </Card>
 
-              <Card>
+              {/* <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <CardTitle className="text-sm font-medium">Messages</CardTitle>
                   <MessageCircle className="w-4 h-4 text-primary" />
@@ -387,7 +387,7 @@ const handlePasswordChange = async () => {
                   <div className="text-2xl font-bold">5</div>
                   <p className="text-xs text-muted-foreground">3 unread</p>
                 </CardContent>
-              </Card>
+              </Card> */}
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -814,7 +814,7 @@ const handlePasswordChange = async () => {
         );
 
       case "editor":
-        return <LandingPageEditor />;
+        return <LandingPageEditor setActiveSection={setActiveSection} />;
 
       case "chat":
         return (

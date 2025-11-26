@@ -10,10 +10,9 @@ import toast, { Toaster } from "react-hot-toast";
 import { getLandingPage, updateLandingPage } from "@/lib/apis";
 import { usePage } from "@inertiajs/react";
 
-const LandingPageEditor = () => {
+const LandingPageEditor = ({ setActiveSection }) => {
   const {props} = usePage();
   const user_tier = props.user.tier_name;
-
 
   const [aboutMe, setAboutMe] = useState({});
   const [services, setServices] = useState([]);
@@ -86,11 +85,9 @@ const LandingPageEditor = () => {
   // 🧠 Fetch function (can be reused)
   const fetchLandingPage = async () => {
     try {
-      toast.loading("Fetching landing page data...", { id: "fetching" });
       const response = await getLandingPage(); // 👈 yahi se fetch hoga
       if (response.status === 200 && response.data?.data) {
         setResponseData(response.data.data);
-        toast.success("Data loaded successfully", { id: "fetching" });
       } else {
         toast.error("Failed to fetch landing page", { id: "fetching" });
       }
@@ -389,6 +386,12 @@ const LandingPageEditor = () => {
           <p className="mb-4">
             Editing your landing page requires a Shine Plus membership.
           </p>
+          <Button 
+            onClick={() => setActiveSection("membership")}
+            className="bg-primary text-white px-6 py-2 rounded-md"
+          >
+            Upgrade Now
+          </Button>
         </div>
       )}
     </Card>
