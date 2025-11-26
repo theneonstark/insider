@@ -20,14 +20,12 @@ const MembershipCard = ({ title, price, features = [], highlighted = false, onJo
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="flex-1 sm:w-full">
-        <ul className="space-y-4">
+      <CardContent>
+        <ul className="space-y-3">
           {(Array.isArray(features) ? features : []).map((feature, index) => (
-            <li key={index} className="flex items-start gap-3">
+            <li key={index} className="flex items-start gap-2">
               <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-              <span className="text-sm text-muted-foreground w-[340px] leading-relaxed break-words ">
-                {feature}
-              </span>
+              <span className="text-sm">{feature}</span>
             </li>
           ))}
           {(!features || features.length === 0) && (
