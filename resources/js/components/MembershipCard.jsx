@@ -4,7 +4,7 @@ import { Check } from "lucide-react";
 
 const MembershipCard = ({ title, price, features = [], highlighted = false, onJoin }) => {
   return (
-    <Card className={`animate-fade-in hover-lift relative transition-all ${highlighted ? 'border-2 border-primary shadow-lg' : ''}`}>
+    <Card className={`w-[395px] sm:w-full animate-fade-in hover-lift relative transition-all ${highlighted ? 'border-2 border-primary shadow-lg' : ''}`}>
       {highlighted && (
         <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
           <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold">
