@@ -37,10 +37,33 @@ class AdController extends Controller
             return response()->json([
                 'status' => false,
                 'errors' => $validator->errors()
-            ]);
+            ], 422);
         }
 
-        // ⭐ 1. SAVE IMAGE PERMANENTLY (NOT TEMP)
+        // ⭐ CHECK GLOBAL AD LIMIT (MAX 5 ACTIVE ADS)
+        $today = Carbon::today();
+
+        $activeAds = \App\Models\Ad::where('end_date', '>=', $today)->count();
+
+        // dd($activeAds);
+
+        if ($activeAds >= 5) {
+
+            // ⭐ Find earliest ending ad
+            $firstEndingAd = \App\Models\Ad::where('end_date', '>=', $today)
+                ->orderBy('end_date', 'asc')
+                ->first();
+
+            // ⭐ The date when new slot becomes free
+            $availableDate = Carbon::parse($firstEndingAd->end_date)->addDay()->format('Y-m-d');
+
+            return response()->json([
+                'status' => false,
+                'message' => "All ad slots are booked. You can run your ad after {$availableDate}."
+            ], 403);
+        }
+
+        // ⭐ SAVE IMAGE
         $imagePath = null;
 
         if ($request->hasFile('image')) {
@@ -51,13 +74,13 @@ class AdController extends Controller
             $imagePath = 'ads/' . $fileName;
         }
 
-        // ⭐ 2. CALCULATE AMOUNT ($1/day)
+        // ⭐ CALCULATE AMOUNT ($1/day)
         $days = Carbon::parse($request->start_date)->diffInDays(Carbon::parse($request->end_date)) + 1;
-        $amount = $days * 100; // in cents
+        $amount = $days * 100; // cents
 
         Stripe::setApiKey(env('STRIPE_SECRET'));
 
-        // ⭐ 3. CREATE STRIPE INTENT (NO AD YET)
+        // ⭐ CREATE STRIPE PAYMENT INTENT
         $intent = \Stripe\PaymentIntent::create([
             'amount' => $amount,
             'currency' => 'usd',
@@ -71,7 +94,7 @@ class AdController extends Controller
                 'end_date' => $request->end_date,
                 'region_id' => $request->region_id,
                 'industry_id' => $request->industry_id,
-                'image' => $imagePath, // ⭐ FINAL PATH GOES HERE
+                'image' => $imagePath,
             ]
         ]);
 
@@ -81,6 +104,7 @@ class AdController extends Controller
             'public_key' => env('STRIPE_KEY')
         ]);
     }
+
 
     public function adminStore(Request $request)
     {

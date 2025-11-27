@@ -340,7 +340,7 @@ const handlePasswordChange = async () => {
 
   } catch (err) {
     console.error(err);
-    toast.error("Something went wrong while creating ad");
+    toast.error(err?.response?.data?.message || "Internal Server Error");
   }
 };
 
