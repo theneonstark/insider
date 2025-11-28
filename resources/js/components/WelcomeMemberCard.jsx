@@ -108,7 +108,7 @@ const WelcomeMemberCard = ({ id, featured,name, industry,tier, region, image, vi
         <Link href={`/profile/${id}`}>
           <Button 
             size="sm"
-            className="flex-1 bg-primary hover:bg-primary/90 cursor-not-allowed text-primary-foreground"
+            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             Profile
           </Button>

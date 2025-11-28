@@ -174,6 +174,64 @@ export const updateAd = (id, data) => axios.post(`/ads/${id}`, data, {
 export const deleteAd = (id) => axios.delete(`/ads/${id}`);
 export const updateAdStatus = (id, data) => axios.post(`/ads/${id}/status`, data);
 
+
+// =======================
+// CONNECTION APIs
+// =======================
+
+// Send Connection Request
+export const sendConnectionRequest = (authUser, receiverId) => {
+  return axios.post("/connect", {
+    user_id: receiverId,
+  });
+};
+
+// Accept Connection
+export const acceptConnectionRequest = (connectionId) => {
+  return axios.post("/connect/accept", {
+    connection_id: connectionId,
+  });
+};
+
+// Remove Connection
+export const removeConnection = (connectionId) => {
+  return axios.post("/connect/remove", {
+    connection_id: connectionId,
+  });
+};
+
+// Get All Accepted Connections
+export const fetchMyConnections = () => {
+  return axios.get("/connections");
+};
+
+// Get Pending Requests
+export const fetchPendingRequests = () => {
+  return axios.get("/connections/pending");
+};
+
+export const fetchConnectionStatus = async (profileId) => {
+  return axios.get(`/connection/status/${profileId}`);
+};
+
+
+// Send Message
+export const sendMessage = async (receiverId, message) => {
+  return axios.post("/chat/send", {
+    receiver_id: receiverId,
+    message: message,
+  });
+};
+
+// Get chat between current user & another user
+export const getChat = async (userId) => {
+  return axios.get(`/chat/${userId}`);
+};
+
+export const fetchChatList = () => {
+  return axios.get("/chat/list");
+};
+
 // Admin APIs
 
 export const userdata = async() => {

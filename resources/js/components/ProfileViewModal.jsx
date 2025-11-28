@@ -2,21 +2,112 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Eye } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
-import { usePage } from "@inertiajs/react";
+import { router, usePage } from "@inertiajs/react";
+import { acceptConnectionRequest, fetchConnectionStatus, sendConnectionRequest } from "@/lib/apis";
 
 const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement }) => {
-  
-  const { props } = usePage();
 
-  const role = props?.auth?.user?.role  
-  
-   useEffect(() => {
-      if (open && profile && onViewIncrement) {
-        onViewIncrement(); // but prefer to update parent from card instead
-      }
-    }, [open]); // run only when modal opens
+  const { props } = usePage();
+  const user = props?.auth?.user;
+  const role = props?.auth?.user?.role;
+
+  const [connectionStatus, setConnectionStatus] = useState("none");
+  const [connectionId, setConnectionId] = useState(null);
+
+
+  // Increase view count
+  useEffect(() => {
+    if (open && profile && onViewIncrement) {
+      onViewIncrement();
+    }
+  }, [open]);
+
+
+  // Load connection status when modal opens
+  useEffect(() => {
+    if (open && profile) {
+      loadConnectionStatus();
+    }
+  }, [open]);
+
+
+  const loadConnectionStatus = async () => {
+    try {
+      const res = await fetchConnectionStatus(profile.id);
+      setConnectionStatus(res.data.status);
+      setConnectionId(res.data.connection_id);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+
+  const handleConnect = async () => {
+    if (!user) {
+      return router.visit("/login");
+    }
+
+    try {
+      await sendConnectionRequest(user, profile.id);
+      toast.success("Connection Request Sent!");
+      loadConnectionStatus(); // reload new status
+    } catch (error) {
+      console.log(error);
+      toast.error(error.response?.data?.message || "Error!");
+    }
+  };
+
+
+  // Dynamic Button
+  const renderConnectButton = () => {
+    if (!user) {
+      return (
+        <Button onClick={() => router.visit("/login")}>
+          Let's Connect
+        </Button>
+      );
+    }
+
+    if (connectionStatus === "accepted") {
+      return (
+        <Button disabled className="bg-green-600 text-white">
+          Connected
+        </Button>
+      );
+    }
+
+    if (connectionStatus === "sent") {
+      return (
+        <Button disabled className="bg-yellow-500 text-white">
+          Request Sent
+        </Button>
+      );
+    }
+
+    if (connectionStatus === "received") {
+      return (
+        <Button
+          onClick={async () => {
+            await acceptConnectionRequest(connectionId);
+            toast.success("Request Accepted!");
+            loadConnectionStatus();
+          }}
+          className="bg-blue-600 text-white"
+        >
+          Accept Request
+        </Button>
+      );
+    }
+
+    return (
+      <Button onClick={handleConnect}>
+        Let's Connect
+      </Button>
+    );
+  };
+
 
   if (!profile) return null;
 
@@ -26,55 +117,41 @@ const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement
         <DialogHeader>
           <DialogTitle className="text-2xl font-heading">Profile Details</DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-6 py-4">
+
           {/* Profile Picture */}
           {profile.image && (
             <div className="flex justify-center">
-              <img 
-                src={role === "admin"
-                      ? `../${profile.image}`
-                      : `${profile.image}`
-                    }
+              <img
+                src={role === "admin" ? `../${profile.image}` : `${profile.image}`}
                 alt={profile.name}
                 className="w-32 h-32 rounded-full object-cover shadow-[var(--shadow-card)]"
               />
             </div>
           )}
-          
-          {/* Basic Info */}
+
+          {/* Info */}
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-muted-foreground">Name</label>
               <p className="text-lg font-semibold">{profile.name}</p>
             </div>
-            
-            {/* <div>
-              <label className="text-sm font-medium text-muted-foreground">Email</label>
-              <p className="text-lg">{profile.email}</p>
-            </div> */}
-            
-            {/* {profile.phone && (
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Phone Number</label>
-                <p className="text-lg">{profile.phone}</p>
-              </div>
-            )} */}
-            
+
             {profile.businessType && (
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Business Type</label>
                 <p className="text-lg">{profile.businessType}</p>
               </div>
             )}
-            
-            {profile.state && (
+
+            {profile.region?.regionName && (
               <div>
                 <label className="text-sm font-medium text-muted-foreground">State</label>
-                <p className="text-lg">{profile?.region?.regionName}</p>
+                <p className="text-lg">{profile.region.regionName}</p>
               </div>
             )}
-            
+
             {profile.dob && (
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Date of Birth</label>
@@ -82,22 +159,17 @@ const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement
               </div>
             )}
           </div>
-          
-          {/* Bio */}
-          {profile.bio && (
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">Bio</label>
-              <p className="text-base mt-2 leading-relaxed">{profile.bio}</p>
-            </div>
-          )}
-          
-          {/* Membership & Views */}
+
+
+          {/* Membership */}
           <div className="flex items-center gap-4 pt-4 border-t">
             <div className="flex flex-col items-center">
               <label className="text-sm font-medium text-muted-foreground">Membership Tier</label>
-              <Badge className="mt-1 p-1 bg-primary text-primary-foreground">{profile?.tier?.tier_name}</Badge>
+              <Badge className="mt-1 p-1 bg-primary text-primary-foreground">
+                {profile?.tier?.tier_name}
+              </Badge>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <Eye className="w-5 h-5 text-primary" />
               <div>
@@ -106,27 +178,30 @@ const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement
               </div>
             </div>
           </div>
-          
+
+
           {/* Actions */}
           <div className="flex gap-3 pt-4">
+
             {role !== "admin" && onEdit && (
-                <Button
-                  onClick={onEdit}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                >
-                  Edit Profile
-                </Button>
-              )}
-            <Button 
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
+              <Button
+                onClick={onEdit}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                Edit Profile
+              </Button>
+            )}
+
+            {renderConnectButton()}  {/* FIXED BUTTON */}
+
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
               Close
             </Button>
+
           </div>
         </div>
       </DialogContent>
-      <Toaster/>
+      <Toaster />
     </Dialog>
   );
 };

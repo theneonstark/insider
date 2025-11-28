@@ -15,7 +15,7 @@ import MembershipCard from "@/components/MembershipCard";
 import PaymentModal from "@/components/PaymentModal";
 import FeatureActivationModal from "@/components/FeatureActivationModal";
 import { usePage } from "@inertiajs/react";
-import { CreateAds, Data, getAds, membershipPlans, updatePassword, userAds } from "@/lib/apis";
+import { acceptConnectionRequest, CreateAds, Data, fetchChatList, fetchMyConnections, getAds, getChat, membershipPlans, removeConnection, sendMessage, updatePassword, userAds } from "@/lib/apis";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import toast from "react-hot-toast";
 import { Textarea } from "@/components/ui/textarea";
@@ -65,6 +65,13 @@ const Dashboard = (userData) => {
   const [adPaymentOpen, setAdPaymentOpen] = useState(false);
   const [adPayment, setAdPayment] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [friends, setFriends] = useState([]);
+
+  const [conversations, setConversations] = useState([]);
+  const [activeUser, setActiveUser] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [typedMessage, setTypedMessage] = useState("");
+
 
   useEffect(() => {
     const fetchFilters = async () => {
@@ -230,9 +237,6 @@ const handlePasswordChange = async () => {
     fetchRunningAds();
   }, []);
 
-
-  
-  
   const [ads, setAds] = useState([]);
   
   const fetchAds = async () => {
@@ -348,6 +352,59 @@ const handlePasswordChange = async () => {
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+
+
+  useEffect(() => {
+    loadFriends();
+  }, []);
+
+  const loadFriends = async () => {
+    try {
+      const res = await fetchMyConnections();
+      setFriends(res.data);        // important
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+  loadConversations();
+  }, []);
+
+  const loadConversations = async () => {
+    try {
+      const res = await fetchChatList();
+      setConversations(res.data);
+    } catch (err) {
+      console.log("Chat List Error:", err);
+      toast.error(err?.response?.data?.message || "Failed to load conversations");
+    }
+  };
+
+  const openChat = async (user) => {
+    try {
+      setActiveUser(user);
+
+      const res = await getChat(user.id);
+      setMessages(res.data);
+    } catch (err) {
+      console.log("Open Chat Error:", err);
+      toast.error(err?.response?.data?.message || "Unable to load chat");
+    }
+  };
+
+  const handleSend = async () => {
+    if (!typedMessage.trim()) return;
+
+    await sendMessage(activeUser.id, typedMessage);
+    setTypedMessage("");
+
+    // Reload chat
+    const res = await getChat(activeUser.id);
+    setMessages(res.data);
+  };
+
+
   const renderContent = () => {
     switch (activeSection) {
       case "dashboard":
@@ -816,6 +873,213 @@ const handlePasswordChange = async () => {
       case "editor":
         return <LandingPageEditor setActiveSection={setActiveSection} />;
 
+      case "friends":
+        return (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>My Friends</CardTitle>
+                <CardDescription>Connect and network with fellow entrepreneurs</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {friends.length === 0 && (
+                    <p className="text-sm text-muted-foreground">No connections found.</p>
+                  )}
+
+                  {friends.map((friend) => (
+                    <Card key={friend.id} className="overflow-hidden">
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Avatar className="h-12 w-12">
+                            <AvatarImage src={friend.image} alt={friend.name} />
+                            <AvatarFallback>
+                              {friend.name.split(" ").map((n) => n[0]).join("")}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-sm truncate">{friend.name}</h3>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-xs text-muted-foreground">Status:</span>
+
+                            {/* 1. Already Connected */}
+                            {friend.status === "accepted" && (
+                              <Badge className="text-xs p-1 bg-green-600 text-white">
+                                Connected
+                              </Badge>
+                            )}
+
+                            {/* 2. I sent the request */}
+                            {friend.status === "sent" && (
+                              <Badge className="text-xs p-1 bg-yellow-500 text-white">
+                                Request Sent
+                              </Badge>
+                            )}
+
+                            {/* 3. I received the request → Accept + Reject buttons */}
+                            {friend.status === "received" && (
+                              <div className="flex gap-2">
+
+                                {/* Accept */}
+                                <Button
+                                  size="xs"
+                                  className="bg-blue-600 text-white h-6 px-2"
+                                  onClick={async () => {
+                                    try {
+                                      await acceptConnectionRequest(friend.connection_id);
+                                      toast.success("Request Accepted!");
+                                      loadFriends(); // refresh updated list
+                                    } catch (err) {
+                                      toast.error("Error accepting request");
+                                    }
+                                  }}
+                                >
+                                  Accept
+                                </Button>
+
+                                {/* Reject (Remove) */}
+                                <Button
+                                  size="xs"
+                                  variant="destructive"
+                                  className="h-6 px-2"
+                                  onClick={async () => {
+                                    try {
+                                      await removeConnection(friend.connection_id);
+                                      toast.success("Request Rejected!");
+                                      loadFriends(); // refresh
+                                    } catch (err) {
+                                      toast.error("Error rejecting request");
+                                    }
+                                  }}
+                                >
+                                  Reject
+                                </Button>
+
+                              </div>
+                            )}
+                          </div>
+
+
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-muted-foreground">Tier:</span>
+                            <Badge className="text-xs p-1">
+                              {friend.tier}
+                            </Badge>
+                          </div>
+
+                          {/* Status Badge */}
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-muted-foreground">Status:</span>
+                            <Badge
+                              className={`text-xs p-1 ${
+                                friend.status === "accepted" ? "bg-green-500 text-white" : ""
+                              } ${
+                                friend.status === "sent" ? "bg-yellow-500 text-white" : ""
+                              } ${
+                                friend.status === "received" ? "bg-blue-500 text-white" : ""
+                              }`}
+                            >
+                              {friend.status === "accepted" && "Connected"}
+                              {friend.status === "sent" && "Request Sent"}
+                              {friend.status === "received" && "Pending Request"}
+                            </Badge>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 mt-3">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1"
+                            onClick={async () => {
+                              // 1) Select friend as active chat user
+                              setActiveUser(friend);
+
+                              // 2) Add friend to conversations list if not exist
+                              setConversations((prev) => {
+                                const exists = prev.some((c) => c.user.id === friend.id);
+                                if (!exists) {
+                                  return [
+                                    { user: friend, last_message: "" }, 
+                                    ...prev
+                                  ];
+                                }
+                                return prev;
+                              });
+
+                              // 3) Switch to chat tab
+                              setActiveSection("chat");
+
+                              // 4) Load chat messages
+                              await openChat(friend);
+                            }}
+                          >
+                            Chat
+                          </Button>
+                          <Button size="sm" variant="outline" className="flex-1">
+                            View Profile
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* <Card>
+              <CardHeader>
+                <CardTitle>Add New Friend</CardTitle>
+                <CardDescription>Search for entrepreneurs to connect with</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex gap-2">
+                    <Input placeholder="Search by name or business..." className="flex-1" />
+                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                      <Search className="w-4 h-4 mr-2" />
+                      Search
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Filter by State</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select state" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="california">California</SelectItem>
+                        <SelectItem value="texas">Texas</SelectItem>
+                        <SelectItem value="newyork">New York</SelectItem>
+                        <SelectItem value="florida">Florida</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Filter by Industry</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select industry" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="technology">Technology</SelectItem>
+                        <SelectItem value="marketing">Marketing</SelectItem>
+                        <SelectItem value="consulting">Consulting</SelectItem>
+                        <SelectItem value="ecommerce">E-commerce</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card> */}
+          </div>
+        );
+
       case "chat":
         return (
           <Card>
@@ -823,19 +1087,62 @@ const handlePasswordChange = async () => {
               <CardTitle>Messages</CardTitle>
               <CardDescription>Connect with other members</CardDescription>
             </CardHeader>
+
             <CardContent>
               <div className="grid md:grid-cols-3 gap-6">
+                {/* LEFT SIDE - CHAT LIST */}
                 <div className="space-y-2">
                   <h3 className="font-semibold mb-3">Conversations</h3>
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="p-3 bg-muted rounded-lg cursor-pointer hover:bg-muted/80">
-                      <div className="font-medium">Member {i}</div>
-                      <div className="text-sm text-muted-foreground">Last message...</div>
+
+                  {conversations.map((item, index) => (
+                    <div
+                      key={index}
+                      onClick={() => openChat(item.user)}
+                      className="p-3 bg-muted rounded-lg cursor-pointer hover:bg-muted/80"
+                    >
+                      <div className="font-medium">{item.user.name}</div>
+                      <div className="text-sm text-muted-foreground truncate">
+                        {item.last_message || "Say hi 👋"}
+                      </div>
                     </div>
                   ))}
                 </div>
-                <div className="md:col-span-2 p-6 bg-muted rounded-lg flex items-center justify-center">
-                  <p className="text-muted-foreground">Select a conversation to view messages</p>
+
+                {/* RIGHT SIDE - Chat Window */}
+                <div className="md:col-span-2 p-6 bg-muted rounded-lg">
+                  {!activeUser ? (
+                    <p className="text-muted-foreground text-center">
+                      Select a conversation to view messages
+                    </p>
+                  ) : (
+                    <div className="flex flex-col h-[400px]">
+                      {/* Messages */}
+                      <div className="flex-1 overflow-y-auto space-y-3 mb-4">
+                        {messages.map((msg) => (
+                          <div
+                            key={msg.id}
+                            className={`p-2 rounded-lg max-w-xs ${
+                              msg.sender_id === activeUser.id
+                                ? "bg-white"
+                                : "bg-primary text-white ml-auto"
+                            }`}
+                          >
+                            {msg.message}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Send Message */}
+                      <div className="flex gap-2">
+                        <Input
+                          value={typedMessage}
+                          onChange={(e) => setTypedMessage(e.target.value)}
+                          placeholder="Type a message..."
+                        />
+                        <Button onClick={handleSend}>Send</Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -1009,7 +1316,6 @@ const handlePasswordChange = async () => {
         return null;
     }
   };
-
   return (
     <div className="min-h-screen bg-background flex">
        {/* DESKTOP SIDEBAR */}

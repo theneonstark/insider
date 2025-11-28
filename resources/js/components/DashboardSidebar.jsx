@@ -1,6 +1,7 @@
 import { 
   Home, User, CreditCard, Layout, MessageSquare, Star, 
-  Settings, LogOut, BarChart3, X 
+  Settings, LogOut, BarChart3, X, 
+  Users
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "@inertiajs/react";
@@ -12,6 +13,7 @@ const DashboardSidebar = ({ activeSection, onSectionChange, mobile = false, onCl
     { id: "membership", label: "Membership Plans", icon: CreditCard },
     { id: "editor", label: "Landing Page Editor", icon: Layout },
     { id: "ads", label: "Ads Management", icon: BarChart3 },
+    { id: "friends", label: "Friends", icon: Users },
     { id: "chat", label: "Chat", icon: MessageSquare },
     { id: "featured", label: "Featured", icon: Star },
     { id: "settings", label: "Settings", icon: Settings },

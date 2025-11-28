@@ -4,6 +4,8 @@ use App\Http\Controllers\AdController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DataController;
+use App\Http\Controllers\ChatController;
+use App\Http\Controllers\ConnectionController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\PaymentController;
@@ -53,6 +55,8 @@ Route::group(['prefix' => 'membership'], function () {
 Route::post('/increase-view', [HomeController::class, 'increaseView']);
 
 Route::group(['middleware'=>'auth'], function () {
+
+
     Route::get('/dashboard', [HomeController::class, 'index']);
     Route::post('/updatelandingpage', [HomeController::class, 'updateLandingPage']);
     Route::get('/getLandingPage', [HomeController::class, 'getLandingPage']);
@@ -90,5 +94,18 @@ Route::group(['middleware'=>'auth'], function () {
         Route::delete('/{id}', [AdController::class, 'destroy']);
         Route::post('/{id}/status', [AdController::class, 'updateStatus']);
     });
+
+    Route::post('/connect', [ConnectionController::class, 'connect']);
+    Route::post('/connect/accept', [ConnectionController::class, 'accept']);
+    Route::post('/connect/remove', [ConnectionController::class, 'remove']);
+
+    Route::get('/connections', [ConnectionController::class, 'myConnections']);
+    Route::get('/connection/status/{id}', [ConnectionController::class, 'connectionStatus']);
+    Route::get('/connections/pending', [ConnectionController::class, 'pendingRequests']);
+
+    // Send message
+    Route::post('/chat/send', [ChatController::class, 'sendMessage']);
+    Route::get('/chat/{userId}', [ChatController::class, 'getChat']);
+    Route::get('/chat/list', [ChatController::class, 'chatList']);
 });
 Route::get('/ads/data', [AdController::class, 'index']);
