@@ -154,9 +154,9 @@ const Signup = () => {
                 </p>
               ) : (
                 <Select
-                  value={formData.businessType}
+                  value={String(formData.businessType)}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, businessType: value })
+                    setFormData({ ...formData, businessType: String(value) })
                   }
                 >
                   <SelectTrigger>
@@ -165,10 +165,7 @@ const Signup = () => {
                   <SelectContent className="bg-popover">
                     {businessTypes.length > 0 ? (
                       businessTypes.map((type) => (
-                        <SelectItem
-                          key={type.regionId}
-                          value={type.regionName}
-                        >
+                        <SelectItem key={type.regionId} value={String(type.regionId)}>
                           {type.regionName}
                         </SelectItem>
                       ))
