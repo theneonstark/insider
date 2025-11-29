@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Users, DollarSign, Award, BarChart3, Bell, Search, Upload, X, Menu } from "lucide-react";
+import { Users, DollarSign, Award, BarChart3, Bell, Search, Upload, X, Menu, ArrowLeft } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import AdminSidebar from "@/components/AdminSidebar";
 import ProfileViewModal from "@/components/ProfileViewModal";
@@ -13,7 +13,7 @@ import EditProfileModal from "@/components/EditProfileModal";
 import { addFeature, CreateAdminAds, deleteAd, getAds, removeFeature, revenueByTier, revenueData, updateAd, updateAdminSettings, updateAdStatus, userdata } from "@/lib/apis";
 import toast, { Toaster } from "react-hot-toast";
 import AddUserModal from "@/components/AddUserModal";
-import { usePage } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import EditAdModal from "@/components/EditAdModal";
 
 const Admin = () => {
@@ -593,7 +593,7 @@ const Admin = () => {
                         <div>
                           <p className="font-medium">{user.name}</p>
                           <p className="text-sm text-muted-foreground">
-                            {user.tier || "Member"} • {user.views || 0} views
+                            {user.tier?.tier_name || "Member"} • {user.views || 0} views
                           </p>
                         </div>
                         <Button
@@ -778,14 +778,14 @@ const Admin = () => {
               <Menu className="w-6 h-6 text-foreground" />
             </button>
             <div className="flex items-center gap-4 flex-1 max-w-md">
-              <Search className="w-5 h-5 text-muted-foreground" />
-              <Input placeholder="Search..." className="border-none bg-muted" />
+              {/* <Search className="w-5 h-5 text-muted-foreground" />
+              <Input placeholder="Search..." className="border-none bg-muted" /> */}
             </div>
 
             
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="icon">
-                <Bell className="w-5 h-5" />
+                {/* <Bell className="w-5 h-5" /> */}
               </Button>
               <Avatar>
                 <AvatarFallback>AD</AvatarFallback>

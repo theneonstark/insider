@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MessageCircle, Eye, Star, Award, Bell, Search, Upload, X, Menu } from "lucide-react";
+import { MessageCircle, Eye, Star, Award, Bell, Search, Upload, X, Menu, ArrowLeft } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import ProfileViewModal from "@/components/ProfileViewModal";
@@ -14,7 +14,7 @@ import LandingPageEditor from "@/components/LandingPageEditor";
 import MembershipCard from "@/components/MembershipCard";
 import PaymentModal from "@/components/PaymentModal";
 import FeatureActivationModal from "@/components/FeatureActivationModal";
-import { usePage } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import { acceptConnectionRequest, CreateAds, Data, fetchChatList, fetchMyConnections, getAds, getChat, membershipPlans, removeConnection, sendMessage, updatePassword, userAds } from "@/lib/apis";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import toast from "react-hot-toast";
@@ -1357,8 +1357,14 @@ const handlePasswordChange = async () => {
 
             {/* EXISTING SEARCH BAR SECTION */}
             <div className="flex items-center gap-4 flex-1 max-w-md ml-3 md:ml-0">
-              <Search className="w-5 h-5 text-muted-foreground" />
-              <Input placeholder="Search..." className="border-none bg-muted" />
+              {/* <Search className="w-5 h-5 text-muted-foreground" />
+              <Input placeholder="Search..." className="border-none bg-muted" /> */}
+              <Link href={'/'}>
+                <Button>
+                  <span><ArrowLeft></ArrowLeft></span>
+                  Main Page
+                </Button>
+              </Link>
             </div>
 
             {/* RIGHT SIDE BUTTONS */}

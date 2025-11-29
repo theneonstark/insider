@@ -1,6 +1,7 @@
 import { 
   Home, Megaphone, Users, Star, BarChart, Edit, 
-  Settings, LogOut, X 
+  Settings, LogOut, X,
+  AppWindow
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "@inertiajs/react";
