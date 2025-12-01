@@ -5,7 +5,7 @@ import { Eye } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { router, usePage } from "@inertiajs/react";
-import { acceptConnectionRequest, fetchConnectionStatus, sendConnectionRequest } from "@/lib/apis";
+import { acceptConnectionRequest, allUsers, fetchConnectionStatus, sendConnectionRequest } from "@/lib/apis";
 
 const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement }) => {
 
@@ -15,15 +15,17 @@ const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement
 
   const [connectionStatus, setConnectionStatus] = useState("none");
   const [connectionId, setConnectionId] = useState(null);
+  const [views, setViews] = useState(parseInt(profile?.views) || 0);
 
 
-  // Increase view count
   useEffect(() => {
-    if (open && profile && onViewIncrement) {
-      onViewIncrement();
+    if (open && profile) {
+      setViews(prev => prev + 1);   // UI instantly updates
+      // onViewIncrement();           // backend increment
     }
   }, [open]);
 
+  
 
   // Load connection status when modal opens
   useEffect(() => {
@@ -174,7 +176,7 @@ const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement
               <Eye className="w-5 h-5 text-primary" />
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Profile Views</label>
-                <p className="text-lg font-semibold">{Number(profile.views)}</p>
+                <p className="text-lg font-semibold">{views}</p>
               </div>
             </div>
           </div>
