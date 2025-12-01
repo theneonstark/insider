@@ -14,7 +14,7 @@ const DashboardSidebar = ({ activeSection, onSectionChange, mobile = false, onCl
     { id: "editor", label: "Landing Page Editor", icon: Layout },
     { id: "ads", label: "Ads Management", icon: BarChart3 },
     { id: "friends", label: "Friends", icon: Users },
-    { id: "chat", label: "Chat", icon: MessageSquare },
+    // { id: "chat", label: "Chat", icon: MessageSquare },
     { id: "featured", label: "Featured", icon: Star },
     { id: "settings", label: "Settings", icon: Settings },
   ];

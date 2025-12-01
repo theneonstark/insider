@@ -992,7 +992,8 @@ const handlePasswordChange = async () => {
                         </div>
 
                         <div className="flex gap-2 mt-3">
-                          <Button
+                          {friend.status === "accepted" && (
+                            <Button
                             size="sm"
                             variant="outline"
                             className="flex-1"
@@ -1021,6 +1022,7 @@ const handlePasswordChange = async () => {
                           >
                             Chat
                           </Button>
+                          )}
                           <Button size="sm" variant="outline" className="flex-1">
                             View Profile
                           </Button>
