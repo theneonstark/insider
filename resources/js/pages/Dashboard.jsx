@@ -27,6 +27,7 @@ import {loadStripe} from "@stripe/stripe-js";
 import {CardNumberElement, useElements} from "@stripe/react-stripe-js";
 import AdPaymentModal from "@/components/AdPaymentModal";
 import Autoplay from "embla-carousel-autoplay";
+import FriendViewModal from "@/components/FriendViewModal";
 
 const Dashboard = (userData) => {
   // Mock data for all running ads (admin + user ads)
@@ -71,6 +72,9 @@ const Dashboard = (userData) => {
   const [activeUser, setActiveUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [typedMessage, setTypedMessage] = useState("");
+
+  const [selectedProfile, setSelectedProfile] = useState(null);
+  const [openFriendProfile, setOpenFriendProfile] = useState(false)
 
 
   useEffect(() => {
@@ -1023,7 +1027,11 @@ const handlePasswordChange = async () => {
                             Chat
                           </Button>
                           )}
-                          <Button size="sm" variant="outline" className="flex-1">
+                          <Button size="sm" variant="outline" className="flex-1" 
+                          onClick={() => {
+                            setSelectedProfile(friend);  // <-- store clicked friend
+                            setOpenFriendProfile(true);    // open modal
+                          }}>
                             View Profile
                           </Button>
                         </div>
@@ -1121,16 +1129,26 @@ const handlePasswordChange = async () => {
                       {/* Messages */}
                       <div className="flex-1 overflow-y-auto space-y-3 mb-4">
                         {messages.map((msg) => (
-                          <div
+                         <>
+                           <div
                             key={msg.id}
-                            className={`p-2 rounded-lg max-w-xs ${
+                            className={`flex justify-between items-end p-2 rounded-lg max-w-xs ${
                               msg.sender_id === activeUser.id
                                 ? "bg-white"
                                 : "bg-primary text-white ml-auto"
                             }`}
                           >
-                            {msg.message}
+                            <span>
+                              {msg.message}
+                            </span> 
+                            <span className="text-[12px]">
+                              {new Date(msg.created_at).toLocaleString("en-IN", {
+                                dateStyle: "medium",
+                                timeStyle: "short",
+                              })}
+                            </span>
                           </div>
+                         </>
                         ))}
                       </div>
 
@@ -1483,6 +1501,13 @@ const handlePasswordChange = async () => {
           {renderContent()}
         </main>
       </div>
+
+      <FriendViewModal
+        open={openFriendProfile}
+        onOpenChange={setOpenFriendProfile}
+        data={selectedProfile}
+      />
+
 
       <ProfileViewModal
         profile={userProfile}

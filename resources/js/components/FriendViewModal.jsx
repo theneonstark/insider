@@ -7,19 +7,20 @@ import toast, { Toaster } from "react-hot-toast";
 import { router, usePage } from "@inertiajs/react";
 import { acceptConnectionRequest, fetchConnectionStatus, sendConnectionRequest } from "@/lib/apis";
 
-const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement }) => {
-
+const FriendViewModal = ({ data, open, onOpenChange, onEdit, onViewIncrement }) => {
+    console.log(data);
+    
   const { props } = usePage();
   const user = props?.auth?.user;
   const role = props?.auth?.user?.role;
 
   const [connectionStatus, setConnectionStatus] = useState("none");
   const [connectionId, setConnectionId] = useState(null);
-  const [views, setViews] = useState(parseInt(profile?.views) || 0);
+  const [views, setViews] = useState(parseInt(data?.views) || 0);
 
 
   useEffect(() => {
-    if (open && profile) {
+    if (open && data) {
       setViews(prev => prev + 1);   // UI instantly updates
       // onViewIncrement();           // backend increment
     }
@@ -29,7 +30,7 @@ const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement
 
   // Load connection status when modal opens
   useEffect(() => {
-    if (open && profile) {
+    if (open && data) {
       loadConnectionStatus();
     }
   }, [open]);
@@ -37,7 +38,7 @@ const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement
 
   const loadConnectionStatus = async () => {
     try {
-      const res = await fetchConnectionStatus(profile.id);
+      const res = await fetchConnectionStatus(data.id);
       setConnectionStatus(res.data.status);
       setConnectionId(res.data.connection_id);
     } catch (err) {
@@ -52,7 +53,7 @@ const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement
     }
 
     try {
-      await sendConnectionRequest(user, profile.id);
+      await sendConnectionRequest(user, data.id);
       toast.success("Connection Request Sent!");
       loadConnectionStatus(); // reload new status
     } catch (error) {
@@ -111,23 +112,23 @@ const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement
   };
 
 
-  if (!profile) return null;
+  if (!data) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-heading">Profile Details</DialogTitle>
+          <DialogTitle className="text-2xl font-heading">data Details</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
 
-          {/* Profile Picture */}
-          {profile.image && (
+          {/* data Picture */}
+          {data.image && (
             <div className="flex justify-center">
               <img
-                src={role === "admin" ? `../${profile.image}` : `${profile.image}`}
-                alt={profile.name}
+                src={role === "admin" ? `../${data.image}` : `${data.image}`}
+                alt={data.name}
                 className="w-32 h-32 rounded-full object-cover shadow-[var(--shadow-card)]"
               />
             </div>
@@ -137,27 +138,27 @@ const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-muted-foreground">Name</label>
-              <p className="text-lg font-semibold">{profile.name}</p>
+              <p className="text-lg font-semibold">{data.name}</p>
             </div>
 
-            {profile.businessType && (
+            {data.businessType && (
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Business Type</label>
-                <p className="text-lg">{profile.businessType}</p>
+                <p className="text-lg">{data.businessType}</p>
               </div>
             )}
 
-            {profile.region?.regionName && (
+            {data.region?.regionName && (
               <div>
                 <label className="text-sm font-medium text-muted-foreground">State</label>
-                <p className="text-lg">{profile.region.regionName}</p>
+                <p className="text-lg">{data.region.regionName}</p>
               </div>
             )}
 
-            {profile.dob && (
+            {data.dob && (
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Date of Birth</label>
-                <p className="text-lg">{profile.dob}</p>
+                <p className="text-lg">{data.dob}</p>
               </div>
             )}
           </div>
@@ -168,14 +169,14 @@ const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement
             <div className="flex flex-col items-center">
               <label className="text-sm font-medium text-muted-foreground">Membership Tier</label>
               <Badge className="mt-1 p-1 bg-primary text-primary-foreground">
-                {profile?.tier?.tier_name}
+                {data?.tier}
               </Badge>
             </div>
 
             <div className="flex items-center gap-2">
               <Eye className="w-5 h-5 text-primary" />
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Profile Views</label>
+                <label className="text-sm font-medium text-muted-foreground">data Views</label>
                 <p className="text-lg font-semibold">{views}</p>
               </div>
             </div>
@@ -190,7 +191,7 @@ const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement
                 onClick={onEdit}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
-                Edit Profile
+                Edit data
               </Button>
             )}
 
@@ -208,4 +209,4 @@ const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement
   );
 };
 
-export default ProfileViewModal;
+export default FriendViewModal;
