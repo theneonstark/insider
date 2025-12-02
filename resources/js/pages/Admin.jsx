@@ -15,6 +15,7 @@ import toast, { Toaster } from "react-hot-toast";
 import AddUserModal from "@/components/AddUserModal";
 import { Link, usePage } from "@inertiajs/react";
 import EditAdModal from "@/components/EditAdModal";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const Admin = () => {
   const [activeSection, setActiveSection] = useState("overview");
@@ -47,6 +48,12 @@ const Admin = () => {
   const [adLink, setAdLink] = useState("");
   const [adActive, setAdActive] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const [userListOpen, setUserListOpen] = useState(false);
+  const [daysModalOpen, setDaysModalOpen] = useState(false);
+  const [featureDays, setFeatureDays] = useState("");
+
+
   const { props } = usePage();
   const admin = props.auth?.user; // ✅ Admin data from Inertia props
   
@@ -359,6 +366,29 @@ const Admin = () => {
     setNewAdImage(null);
   };
 
+  const handleActivateFeature = async () => {
+    if (!featureDays || featureDays <= 0) {
+      return toast.error("Enter valid days");
+    }
+
+    try {
+      setLoadingId(selectedUser.id);
+
+      await addFeature({
+        user_id: Number(selectedUser.id),
+        days: Number(featureDays),
+      });
+
+      toast.success("Feature Activated!");
+      setDaysModalOpen(false);
+      setFeatureDays("");
+    } catch (error) {
+      toast.error("Something went wrong");
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
 
   const renderContent = () => {
     switch (activeSection) {
@@ -574,7 +604,8 @@ const Admin = () => {
 
       case "featured":
         return (
-          <Card>
+          <>
+            <Card>
             <CardHeader>
               <CardTitle>Featured Members</CardTitle>
               <CardDescription>Manage featured member placements</CardDescription>
@@ -612,14 +643,70 @@ const Admin = () => {
               </div>
 
               <Button
-                onClick={handleAdd}
-                disabled={loadingId !== null}
+                onClick={() => setUserListOpen(true)}
                 className="mt-4 bg-primary hover:bg-primary/90 text-primary-foreground"
               >
-                {loadingId !== null ? "Adding..." : "Add Featured Member"}
+                Add Featured Member
               </Button>
             </CardContent>
           </Card>
+
+          <Dialog open={userListOpen} onOpenChange={setUserListOpen}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Select a User</DialogTitle>
+              </DialogHeader>
+
+              <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                {users.map((u) => (
+                  <div key={u.id} className="flex items-center justify-between border p-2 rounded">
+                    <div>
+                      <p className="font-medium">{u.name}</p>
+                      <p className="text-xs text-muted-foreground">{u.email}</p>
+                    </div>
+
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        setSelectedUser(u);
+                        setUserListOpen(false);
+                        setDaysModalOpen(true); // Open next step
+                      }}
+                    >
+                      Add
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
+
+
+          <Dialog open={daysModalOpen} onOpenChange={setDaysModalOpen}>
+            <DialogContent className="max-w-sm">
+              <DialogHeader>
+                <DialogTitle>Feature for how many days?</DialogTitle>
+              </DialogHeader>
+
+              <div className="space-y-3">
+                <Input
+                  placeholder="Enter number of days"
+                  type="number"
+                  value={featureDays}
+                  onChange={(e) => setFeatureDays(e.target.value)}
+                />
+
+                <Button
+                  disabled={loadingId === selectedUser?.id}
+                  onClick={handleActivateFeature}
+                  className="w-full bg-primary hover:bg-primary/90"
+                >
+                  {loadingId === selectedUser?.id ? "Activating..." : "Activate Feature"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+          </>
         );
 
       case "revenue":

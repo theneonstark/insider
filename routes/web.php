@@ -85,6 +85,7 @@ Route::group(['middleware'=>'auth'], function () {
         });
         Route::post('/setting/update', [AdminController::class, 'settingUpdate']);
         Route::post('ads/create', [AdController::class, 'adminStore']);
+        Route::post('/add/user', [AdminController::class, 'addUser']);
     });
     
     Route::group(['prefix' => 'ads'], function () {

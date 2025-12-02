@@ -23,6 +23,7 @@ class AdminController
         try {
             $request->validate([
                 'user_id' => 'required|integer|exists:users,id',
+                'days' => 'required|integer|min:1',   // 👈 days added
             ]);
 
             $user = User::find($request->user_id);
@@ -34,14 +35,15 @@ class AdminController
                 ], 400);
             }
 
+            // 👇 Dynamic expiry based on user input
             $user->update([
                 'featured' => 1,
-                'featured_valid' => now()->addDays(30), // optional expiry
+                'featured_valid' => now()->addDays($request->days),
             ]);
 
             return response()->json([
                 'status' => true,
-                'message' => 'User added to featured successfully.',
+                'message' => 'User featured successfully.',
                 'data' => $user
             ]);
         } catch (\Exception $e) {
@@ -124,4 +126,53 @@ class AdminController
             ], 500);
         }
     }
+
+    public function addUser(Request $request)
+{
+    try {
+        // Validate Inputs
+        $request->validate([
+            'name'          => 'required|string|max:255',
+            'email'         => 'required|email|unique:users,email',
+            'phone'         => 'nullable|string|max:20',
+            'dob'           => 'nullable|date',
+            'businessType'  => 'nullable|string|max:255',
+            'state'         => 'nullable|string|max:255',
+            'tier'          => 'required|integer|in:1,2,3,4',
+            'industry_id'   => 'nullable|integer|exists:industries,industryId',
+            'region_id'     => 'nullable|integer|exists:regions,regionId',
+            'bio'           => 'nullable|string',
+        ]);
+
+        // Create User
+        $user = User::create([
+            'name'          => $request->name,
+            'email'         => $request->email,
+            'phone'         => $request->phone,
+            'dob'           => $request->dob,
+            'business_type' => $request->industry_id,
+            'state'         => $request->region_id,
+            'tier_id'          => (int) $request->tier,
+            'bio'           => $request->bio,
+            'featured'      => 0,
+            'featured_valid'=> null,
+            'password'      => bcrypt('12345678'),
+        ]);
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'User added successfully.',
+            'data'    => $user
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'status'  => false,
+            'message' => 'Error adding user.',
+            'error'   => $e->getMessage()
+        ], 500);
+    }
+}
+
+
 }

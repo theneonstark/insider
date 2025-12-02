@@ -264,15 +264,20 @@ export const revenueByTier = async () => {
   }
 };
 
-export const addFeature = async (userId) => {
+export const addFeature = async (data) => {
   try {
-    const res = await axios.post('/admin/feature/add', { user_id: userId });
+    const res = await axios.post('/admin/feature/add', data);
     return res;
   } catch (err) {
     console.error(err);
     throw err;
   }
 };
+
+export const addUser = async (data) =>{
+  return await axios.post('/admin/add/user' , data)
+}
+
 
 export const removeFeature = async (userId) => {
   try {
