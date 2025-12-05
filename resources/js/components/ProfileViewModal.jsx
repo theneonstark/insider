@@ -15,15 +15,14 @@ const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement
 
   const [connectionStatus, setConnectionStatus] = useState("none");
   const [connectionId, setConnectionId] = useState(null);
-  const [views, setViews] = useState(parseInt(profile?.views) || 0);
 
 
-  useEffect(() => {
-    if (open && profile) {
-      setViews(prev => prev + 1);   // UI instantly updates
-      // onViewIncrement();           // backend increment
-    }
-  }, [open]);
+
+const [views, setViews] = useState(Number(profile?.views || 0));
+
+useEffect(() => {
+  setViews(Number(profile?.views || 0));
+}, [profile, open]);
 
   
 

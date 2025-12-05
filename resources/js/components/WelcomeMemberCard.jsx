@@ -4,76 +4,67 @@ import { Badge } from "@/components/ui/badge";
 import { Eye, Star } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { increaseView } from "@/lib/apis"; // 👈 import API
+import { increaseView } from "@/lib/apis";
 import { Link } from "@inertiajs/react";
 
-const WelcomeMemberCard = ({ id, featured,name, industry,tier, region, image, views = 0, onViewProfile, isFeatured  }) => {
-  
-  const [viewCount, setViewCount] = useState(views);
+const WelcomeMemberCard = ({
+  id,
+  featured,
+  name,
+  industry,
+  region,
+  tier,
+  image,
+  views = 0,
+  onViewProfile,
+  isFeatured
+}) => {
+
+  const [viewCount, setViewCount] = useState(Number(views) || 0);
   const { toast } = useToast();
 
-  // 🧠 "View" click logic
   const handleView = async () => {
-    try {
-      // 🔥 Backend update
-      const res = await increaseView(id);
+  try {
+    const res = await increaseView(id);
 
-      if (res.status) {
-        const updatedViews = Number(res.views); // ensure number
-        setViewCount(updatedViews);
+    const updatedViews = Number(res.data?.views || res.views || views || 0);
 
-        // pass full updated member to parent (so modal gets fresh value)
-        if (onViewProfile) {
-          onViewProfile({
-            id,
-            name,
-            industry,
-            region,
-            tier,
-            image,
-            views: updatedViews
-          });
-        }
-      }
+    setViewCount(updatedViews);
 
-      // 🔥 Optional toast
-      toast({
-        description: "+1 view",
-        duration: 2000,
-      });
-
-      // 🔥 Open profile modal
-      if (onViewProfile) {
-        onViewProfile({
-          id,
-          name,
-          industry,
-          region,
-          tier,
-          image,
-          views: Number(res.views)
-        });
-      }
-    } catch (error) {
-      console.error("Failed to increase view:", error);
-      toast({
-        description: "Failed to increase view",
-        variant: "destructive",
+    if (onViewProfile) {
+      onViewProfile({
+        id,
+        name,
+        industry,
+        region,
+        tier,
+        image,
+        views: updatedViews
       });
     }
-  };
+
+    toast({ description: "+1 view", duration: 2000 });
+
+  } catch (error) {
+    console.error("Failed to increase view:", error);
+    toast({ description: "Failed to increase view", variant: "destructive" });
+  }
+};
+
 
   return (
     <Card className="relative animate-fade-in hover-lift overflow-hidden">
-    {(isFeatured || featured) && (
-      <div className="absolute top-2 right-2 bg-yellow-500 text-white p-1 rounded-full shadow-md z-50">
-        <Star size={16} />
-      </div>
-    )}
+
+      {(isFeatured || featured) && (
+        <div className="absolute top-2 right-2 bg-yellow-500 text-white p-1 rounded-full shadow-md z-50">
+          <Star size={16} />
+        </div>
+      )}
+
       <div className="aspect-square overflow-hidden">
         <img 
-          src={image} 
-          alt={name} 
+          src={image}
+          alt={name}
           className="w-full h-full object-cover"
         />
       </div>
@@ -82,7 +73,9 @@ const WelcomeMemberCard = ({ id, featured,name, industry,tier, region, image, vi
         <div className="flex items-start justify-between mb-2">
           <div>
             <h3 className="font-semibold text-lg">{name}</h3>
-            <p className="text-sm text-muted-foreground">{industry?.industryName} {region?.regionName && `(${region?.regionName})`}</p>
+            <p className="text-sm text-muted-foreground">
+              {industry?.industryName} {region?.regionName && `(${region.regionName})`}
+            </p>
           </div>
           <Badge className="p-1">{tier?.tier_name}</Badge>
         </div>
@@ -94,27 +87,26 @@ const WelcomeMemberCard = ({ id, featured,name, industry,tier, region, image, vi
       </CardContent>
 
       <CardFooter className="p-4 pt-0 flex gap-2">
-        {/* ✅ View triggers DB update + modal open */}
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={handleView}
+
+        {/* View Profile Button */}
+        <Button
+          variant="outline"
+          size="sm"
           className="flex-1"
+          onClick={handleView}
         >
           View
         </Button>
 
-        {/* ❌ Profile disabled */}
-        {tier?.tier_name == "Shine Plus" && (
-          <Link href={`/profile/${id}`}>
-            <Button 
-              size="sm"
-              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
+        {/* Shine Plus direct profile link */}
+        {tier?.tier_name === "Shine Plus" && (
+          <Link href={`/profile/${id}`} className="flex-1">
+            <Button size="sm" className="w-full bg-primary hover:bg-primary/90 text-white">
               Profile
             </Button>
           </Link>
         )}
+
       </CardFooter>
     </Card>
   );

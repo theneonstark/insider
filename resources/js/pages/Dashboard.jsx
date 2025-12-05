@@ -1315,7 +1315,7 @@ const handlePasswordChange = async () => {
               </div>
 
               {/* 🔔 Notifications Section (unchanged) */}
-              <div className="space-y-4 pt-4 border-t">
+              {/* <div className="space-y-4 pt-4 border-t">
                 <h3 className="font-semibold">Notifications</h3>
                 <div className="flex items-center justify-between">
                   <div>
@@ -1328,7 +1328,7 @@ const handlePasswordChange = async () => {
                     Configure
                   </Button>
                 </div>
-              </div>
+              </div> */}
             </CardContent>
           </Card>
         );

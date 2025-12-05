@@ -171,7 +171,7 @@ const Welcome = () => {
     // member is the updated object from the card
     setSelectedProfile({
       ...member,
-      views: Number(member.views) // guarantee it's a number
+      views: Number(member.views || 0) // guarantee it's a number
     });
     setViewProfileOpen(true);
   };
