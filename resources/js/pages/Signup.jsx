@@ -41,7 +41,7 @@ const Signup = () => {
         const res = await Data();
         if (res.status === 200 && res.data.status) {
           // ✅ Business type data is inside region
-          setBusinessTypes(res.data.region || []);
+          setBusinessTypes(res.data.industry || []);
         } else {
           toast.error("Failed to load business types");
         }
@@ -165,8 +165,8 @@ const Signup = () => {
                   <SelectContent className="bg-popover">
                     {businessTypes.length > 0 ? (
                       businessTypes.map((type) => (
-                        <SelectItem key={type.regionId} value={String(type.regionId)}>
-                          {type.regionName}
+                        <SelectItem key={type.industryId} value={String(type.industryId)}>
+                          {type.industryName}
                         </SelectItem>
                       ))
                     ) : (

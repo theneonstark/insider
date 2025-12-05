@@ -76,7 +76,7 @@ class UserController
             'email' => 'required|email|unique:users',
             'phone' => 'required|string|max:15',
             'businessType' => 'required|string',
-            'dob' => 'required|date',
+            'dob' => 'required',
             'password' => 'required|string|min:6',
         ]);
 
