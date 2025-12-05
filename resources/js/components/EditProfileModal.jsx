@@ -93,6 +93,7 @@ const EditProfileModal = ({ profile, open, onOpenChange, onSave }) => {
         onSave(formData);
         toast.success(response.data.message || "Profile updated successfully", { duration: 2000 });
         onOpenChange(false);
+        window.location.reload();
       } else {
         throw new Error("Failed to update profile");
       }
@@ -208,7 +209,7 @@ const EditProfileModal = ({ profile, open, onOpenChange, onSave }) => {
             </div>
 
             {/* Bio */}
-            {/* <div>
+            <div>
               <Label htmlFor="bio">Bio</Label>
               <Textarea
                 id="bio"
@@ -217,7 +218,7 @@ const EditProfileModal = ({ profile, open, onOpenChange, onSave }) => {
                 onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                 placeholder="Tell us about yourself and your business in 250 words or less."
               />
-            </div> */}
+            </div>
 
             {/* Profile Picture */}
             <div className="flex flex-col items-start gap-3">

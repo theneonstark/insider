@@ -40,7 +40,7 @@ class ConnectionController
         Connection::create([
             'sender_id' => $sender,
             'receiver_id' => $receiver,
-            'status' => 'pending'
+            'status' => 'accepted'
         ]);
 
         return response()->json(['message' => 'Connection request sent']);

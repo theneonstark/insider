@@ -11,13 +11,13 @@ import PaymentModal from "@/components/PaymentModal";
 
 import {
   Data,
-  allUsers,
   filter,
   membershipPlans,
   sparkleUser,
   shineUser,
   shinePlusUser,
-  getAds
+  getAds,
+  twinkleUser
 } from "@/lib/apis";
 
 import toast, { Toaster } from "react-hot-toast";
@@ -45,6 +45,7 @@ const Welcome = () => {
   const [viewProfileOpen, setViewProfileOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState(null);
 
+  const [twinkleMembers, setTwinkleMembers] = useState([]);
   const [sparkleMembers, setSparkleMembers] = useState([]);
   const [shineMembers, setShineMembers] = useState([]);
   const [shinePlusMembers, setShinePlusMembers] = useState([]);
@@ -112,6 +113,7 @@ const Welcome = () => {
 
   // LOAD FEATURED USERS
   useEffect(() => {
+    twinkleUser().then((r) => setTwinkleMembers(r.data?.data || []));
     sparkleUser().then((r) => setSparkleMembers(r.data?.data || []));
     shineUser().then((r) => setShineMembers(r.data?.data || []));
     shinePlusUser().then((r) => setShinePlusMembers(r.data?.data || []));
@@ -133,9 +135,9 @@ const Welcome = () => {
       (searchFilters.industry && searchFilters.industry !== "") ||
       (searchFilters.location && searchFilters.location !== "");
 
-    // If no filters → Load default
+    // No search filters → blank list
     if (!hasFilters) {
-      await loadAllUsers();
+      setMembers([]);
       setSearching(false);
       return;
     }
@@ -147,7 +149,7 @@ const Welcome = () => {
         const users = res.data.data.filter((u) => u.role !== "admin");
         setMembers(users);
       } else {
-        setMembers([]); // No results
+        setMembers([]);
       }
     } catch (err) {
       console.error(err);
@@ -156,6 +158,7 @@ const Welcome = () => {
 
     setSearching(false);
   };
+
 
 
   const handleJoinTier = (tier) => {
@@ -211,9 +214,48 @@ const Welcome = () => {
           </div>
         </div>
       </section>
+      
+      {/* Search & Listing */}
+      <section className="py-20 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-heading">Find a Superstar</h2>
+          </div>
+
+          <div className="max-w-3xl mx-auto mb-12">
+            <SearchFilters
+              industries={filters.industry}
+              regions={filters.region}
+              onSearch={handleSearch}
+            />
+          </div>
+
+          {searching ? (
+              <div className="text-center py-8">Searching...</div>
+            ) : (
+              <div className="grid md:grid-cols-3 gap-8">
+                {members.map((m, i) => {
+                  const isFeatured =
+                    m.featured === true &&
+                    m.featured_valid &&
+                    new Date(m.featured_valid) > new Date();
+
+                  return (
+                    <WelcomeMemberCard
+                      key={i}
+                      {...m}
+                      isFeatured={isFeatured}   // ⭐ PASS FEATURE FLAG
+                      onViewProfile={() => handleViewProfile(m)}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </div>
+      </section>
 
       {/* Your Story Section */}
-      <section className="py-20 bg-background">
+      {/* <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="order-2 md:order-1">
@@ -235,8 +277,182 @@ const Welcome = () => {
             </div>
           </div>
         </div>
+      </section> */}
+      
+      {/* Shine Plus Users */}
+      <section className="py-20 bg-secondary">
+        <div className="container mx-auto px-4">
+          <h2 className="text-4xl font-heading text-center mb-12 text-foreground">
+            Top-Tier Insiders
+          </h2>
+
+          {shinePlusMembers.length === 0 ? (
+            <div className="text-center text-muted-foreground col-span-full">
+              No top-tier members found.
+            </div>
+          ) : (
+            <Carousel
+              className="w-full max-w-6xl mx-auto"
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+            >
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {shinePlusMembers.map((member, index) => (
+                  <CarouselItem
+                    key={index}
+                    className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3"
+                  >
+                    <WelcomeMemberCard
+                      {...member}
+                      onViewProfile={() => handleViewProfile(member)}
+                    />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+
+              {/* Navigation Arrows */}
+              <CarouselPrevious className="hidden md:flex" />
+              <CarouselNext className="hidden md:flex" />
+            </Carousel>
+          )}
+        </div>
       </section>
 
+
+      {/* Shine Queens */}
+      <section className="py-20 bg-accent">
+        <div className="container mx-auto px-4">
+          <h2 className="text-4xl font-heading text-center mb-4 text-accent-foreground">
+            Meet the Women Who Shine
+          </h2>
+
+          <p className="text-center text-lg mb-12 text-accent-foreground/80">
+            Recognizing women who shine in our community through active participation and engagement
+          </p>
+
+          {shineMembers.length === 0 ? (
+            <div className="text-center text-accent-foreground/70">
+              No shine members found.
+            </div>
+          ) : (
+            <Carousel
+              className="w-full max-w-6xl mx-auto"
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+            >
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {shineMembers.map((member, index) => (
+                  <CarouselItem
+                    key={index}
+                    className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3"
+                  >
+                    <WelcomeMemberCard
+                      {...member}
+                      views={member.views}
+                      onViewProfile={() => handleViewProfile(member)}
+                    />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+
+              {/* Navigation Arrows */}
+              <CarouselPrevious className="hidden md:flex" />
+              <CarouselNext className="hidden md:flex" />
+            </Carousel>
+          )}
+        </div>
+      </section>
+
+
+      {/* Sparkle Section */}
+      <section className="py-20 bg-secondary">
+        <div className="container mx-auto px-4">
+          <h2 className="text-4xl font-heading text-center mb-12 text-foreground">
+            Meet the Women Who Sparkle
+          </h2>
+
+          {sparkleMembers.length === 0 ? (
+            <div className="text-center text-muted-foreground col-span-full">
+              No sparkle members found.
+            </div>
+          ) : (
+            <Carousel
+              className="w-full max-w-6xl mx-auto"
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+            >
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {sparkleMembers.map((member, index) => (
+                  <CarouselItem
+                    key={index}
+                    className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3"
+                  >
+                    <WelcomeMemberCard
+                      {...member}
+                      onViewProfile={() => handleViewProfile(member)}
+                    />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+
+              {/* Navigation arrows */}
+              <CarouselPrevious className="hidden md:flex" />
+              <CarouselNext className="hidden md:flex" />
+            </Carousel>
+          )}
+        </div>
+      </section>
+
+
+      {/* twinkle Section */}
+      <section className="py-20 bg-secondary">
+        <div className="container mx-auto px-4">
+          <h2 className="text-4xl font-heading text-center mb-12 text-foreground">
+            Meet the Women Who Twinkle
+          </h2>
+
+          {twinkleMembers.length === 0 ? (
+            <div className="text-center text-muted-foreground">
+              No twinkle members found.
+            </div>
+          ) : (
+            <Carousel
+              className="w-full max-w-6xl mx-auto"
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+            >
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {twinkleMembers.map((member, index) => (
+                  <CarouselItem
+                    key={index}
+                    className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3"
+                  >
+                    <WelcomeMemberCard
+                      {...member}
+                      onViewProfile={() => handleViewProfile(member)}
+                    />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+
+              {/* Navigation Buttons */}
+              <CarouselPrevious className="hidden md:flex" />
+              <CarouselNext className="hidden md:flex" />
+            </Carousel>
+          )}
+        </div>
+      </section>
+
+          
+      
       {/* Membership Tiers */}
       {!user?.tier_id && (
         <section className="py-20 bg-muted">
@@ -295,111 +511,6 @@ const Welcome = () => {
           </div>
         </section>
       )}
-
-      {/* Search & Listing */}
-      <section className="py-20 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-heading">Find a Superstar</h2>
-          </div>
-
-          <div className="max-w-3xl mx-auto mb-12">
-            <SearchFilters
-              industries={filters.industry}
-              regions={filters.region}
-              onSearch={handleSearch}
-            />
-          </div>
-
-          {searching ? (
-              <div className="text-center py-8">Searching...</div>
-            ) : (
-              <div className="grid md:grid-cols-3 gap-8">
-                {members.map((m, i) => {
-                  const isFeatured =
-                    m.featured === true &&
-                    m.featured_valid &&
-                    new Date(m.featured_valid) > new Date();
-
-                  return (
-                    <WelcomeMemberCard
-                      key={i}
-                      {...m}
-                      isFeatured={isFeatured}   // ⭐ PASS FEATURE FLAG
-                      onViewProfile={() => handleViewProfile(m)}
-                    />
-                  );
-                })}
-              </div>
-            )}
-          </div>
-      </section>
-
-      {/* Featured Section */}
-      <section className="py-20 bg-secondary">
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-heading text-center mb-12 text-foreground">
-            Meet the Women Who Sparkle
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {sparkleMembers.length > 0 ? (
-              sparkleMembers.map((member, index) => (
-                <WelcomeMemberCard
-                  key={index}
-                  {...member}
-                  onViewProfile={() => handleViewProfile(member)}
-                />
-              ))
-            ) : (
-              <div className="text-center text-muted-foreground col-span-full">
-                No sparkle members found.
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Shine Queens */}
-      <section className="py-20 bg-accent">
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-heading text-center mb-4 text-accent-foreground">
-            Meet the Women Who Shine
-          </h2>
-          <p className="text-center text-lg mb-12 text-accent-foreground/80">
-            Recognizing women who shine in our community through active participation and engagement
-          </p>
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {shineMembers.map((member, index) => (
-              <WelcomeMemberCard key={index} {...member} views={member.views} onViewProfile={() => handleViewProfile(member)}/>
-            ))}
-          </div>
-        </div>
-      </section>
-          
-      {/* Shine Plus Users */}
-      <section className="py-20 bg-secondary">
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-heading text-center mb-12 text-foreground">
-            Top-Tier Insiders
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {sparkleMembers.length > 0 ? (
-              shinePlusMembers.map((member, index) => (
-                
-                <WelcomeMemberCard
-                  key={index}
-                  {...member}
-                  onViewProfile={() => handleViewProfile(member)}
-                />
-              ))
-            ) : (
-              <div className="text-center text-muted-foreground col-span-full">
-                No sparkle members found.
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
 
       {/* Three Steps */}
       <section className="py-20 bg-background">

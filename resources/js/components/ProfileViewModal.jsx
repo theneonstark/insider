@@ -64,6 +64,8 @@ const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement
 
   // Dynamic Button
   const renderConnectButton = () => {
+
+    // 🌐 Non-logged users → show button directing to login
     if (!user) {
       return (
         <Button onClick={() => router.visit("/login")}>
@@ -72,6 +74,7 @@ const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement
       );
     }
 
+    // Logged-in users (not self)
     if (connectionStatus === "accepted") {
       return (
         <Button disabled className="bg-green-600 text-white">
@@ -111,100 +114,112 @@ const ProfileViewModal = ({ profile, open, onOpenChange, onEdit, onViewIncrement
   };
 
 
+
   if (!profile) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-heading">Profile Details</DialogTitle>
-        </DialogHeader>
+   <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogContent className="max-w-3xl rounded-2xl p-0 overflow-hidden shadow-2xl border border-border bg-background">
+      
+      {/* HEADER BANNER */}
+      <div className="w-full h-40 bg-gradient-to-r from-primary/80 to-pink-500/80 flex items-end px-6 py-4">
+        <DialogTitle className="text-3xl font-bold text-white drop-shadow-lg">
+          {profile?.name}
+        </DialogTitle>
+      </div>
 
-        <div className="space-y-6 py-4">
+      <div className="px-8 py-6 space-y-10">
 
-          {/* Profile Picture */}
-          {profile.image && (
-            <div className="flex justify-center">
-              <img
-                src={role === "admin" ? `../${profile.image}` : `${profile.image}`}
-                alt={profile.name}
-                className="w-32 h-32 rounded-full object-cover shadow-[var(--shadow-card)]"
-              />
+        {/* PROFILE IMAGE + STATS */}
+        <div className="flex flex-col items-center -mt-20">
+          <img
+            src={role === "admin" ? `../${profile.image}` : profile.image}
+            alt={profile.name}
+            className="w-36 h-36 rounded-full object-cover ring-4 ring-white shadow-xl"
+          />
+
+          <div className="flex items-center gap-3 mt-4">
+            <Badge className="bg-primary text-primary-foreground text-sm px-3 py-1 rounded-full shadow">
+              {profile?.tier?.tier_name || "Member"}
+            </Badge>
+
+            <div className="flex items-center bg-muted px-3 py-1 rounded-full shadow-sm border">
+              <Eye className="w-4 h-4 text-primary mr-1" />
+              <span className="font-semibold">{views}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* INFO GRID */}
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Full Name</p>
+            <p className="text-lg font-semibold">{profile.name}</p>
+          </div>
+
+          {profile?.businessType && (
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">Business Type</p>
+              <p className="text-lg">{profile.businessType}</p>
             </div>
           )}
 
-          {/* Info */}
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">Name</label>
-              <p className="text-lg font-semibold">{profile.name}</p>
+          {profile?.region?.regionName && (
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">State</p>
+              <p className="text-lg">{profile.region.regionName}</p>
             </div>
+          )}
 
-            {profile.businessType && (
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Business Type</label>
-                <p className="text-lg">{profile.businessType}</p>
-              </div>
-            )}
-
-            {profile.region?.regionName && (
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">State</label>
-                <p className="text-lg">{profile.region.regionName}</p>
-              </div>
-            )}
-
-            {profile.dob && (
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Date of Birth</label>
-                <p className="text-lg">{profile.dob}</p>
-              </div>
-            )}
-          </div>
-
-
-          {/* Membership */}
-          <div className="flex items-center gap-4 pt-4 border-t">
-            <div className="flex flex-col items-center">
-              <label className="text-sm font-medium text-muted-foreground">Membership Tier</label>
-              <Badge className="mt-1 p-1 bg-primary text-primary-foreground">
-                {profile?.tier?.tier_name}
-              </Badge>
+          {profile?.dob && (
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">Date of Birth</p>
+              <p className="text-lg">{profile.dob}</p>
             </div>
+          )}
 
-            <div className="flex items-center gap-2">
-              <Eye className="w-5 h-5 text-primary" />
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Profile Views</label>
-                <p className="text-lg font-semibold">{views}</p>
-              </div>
+          {profile?.bio && (
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">Date of Birth</p>
+              <p className="text-lg">{profile.bio || "User not set the bio"}</p>
             </div>
-          </div>
+          )}
+        </div>
 
-
-          {/* Actions */}
-          <div className="flex gap-3 pt-4">
-
+        {/* CONNECTION + ACTIONS */}
+        <div className="flex flex-wrap justify-between gap-3 pt-6 border-t">
+          
+          <div className="flex gap-3">
             {role !== "admin" && onEdit && (
               <Button
                 onClick={onEdit}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md px-6"
               >
                 Edit Profile
               </Button>
             )}
 
-            {renderConnectButton()}  {/* FIXED BUTTON */}
-
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Close
-            </Button>
-
+            {/* CONNECT BUTTON */}
+            {renderConnectButton && (
+              <div className="shadow-md">{renderConnectButton()}</div>
+            )}
           </div>
+
+          <Button
+            variant="outline"
+            className="px-6 shadow-sm"
+            onClick={() => onOpenChange(false)}
+          >
+            Close
+          </Button>
         </div>
-      </DialogContent>
+
+      </div>
+
       <Toaster />
-    </Dialog>
+    </DialogContent>
+  </Dialog>
+
   );
 };
 

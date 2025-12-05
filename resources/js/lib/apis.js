@@ -130,6 +130,16 @@ export const allUsers = async () => {
   return await axios.get('/allUsers');
 };
 
+export const twinkleUser = async() => {
+  try{
+    const res = await axios.get('/data/twinkle')
+    return res;
+  }catch(err){
+    console.error(err);
+    throw err;
+  }
+}
+
 export const sparkleUser = async() => {
   try{
     const res = await axios.get('/data/sparkle')

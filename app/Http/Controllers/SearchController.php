@@ -100,6 +100,19 @@ class SearchController
         ]);
     }
 
+    public function twinkleUser()
+    {
+        $users = User::with(['industry', 'region', 'tier'])
+            ->where('tier_id', 1)
+            ->get()
+            ->shuffle();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Shine users fetched successfully',
+            'data' => $users,
+        ]);
+    }
 
     public function sparkleUser()
     {

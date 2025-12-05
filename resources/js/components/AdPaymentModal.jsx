@@ -76,6 +76,9 @@ const AdPaymentModal = ({ open, onOpenChange, adForm }) => {
     setAmount(0);
     setClientSecret("");
     onOpenChange(false);
+    setTimeout(()=>{
+      window.location.reload();
+    }, 1000)
   };
 
   // Step 1 → Calculate payable amount & request clientSecret

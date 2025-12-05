@@ -43,6 +43,7 @@ Route::group(['prefix' => 'search'], function () {
 });
 
 Route::group(['prefix' => 'data'], function () {
+    Route::get('twinkle', [SearchController::class, 'twinkleUser']);
     Route::get('sparkle', [SearchController::class, 'sparkleUser']);
     Route::get('shine', [SearchController::class, 'shineUser']);
     Route::get('shinePlus', [SearchController::class, 'shinePlanUser']);

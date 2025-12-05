@@ -105,14 +105,16 @@ const WelcomeMemberCard = ({ id, featured,name, industry,tier, region, image, vi
         </Button>
 
         {/* ❌ Profile disabled */}
-        <Link href={`/profile/${id}`}>
-          <Button 
-            size="sm"
-            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
-          >
-            Profile
-          </Button>
-        </Link>
+        {tier?.tier_name == "Shine Plus" && (
+          <Link href={`/profile/${id}`}>
+            <Button 
+              size="sm"
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              Profile
+            </Button>
+          </Link>
+        )}
       </CardFooter>
     </Card>
   );

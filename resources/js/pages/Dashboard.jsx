@@ -28,6 +28,7 @@ import {CardNumberElement, useElements} from "@stripe/react-stripe-js";
 import AdPaymentModal from "@/components/AdPaymentModal";
 import Autoplay from "embla-carousel-autoplay";
 import FriendViewModal from "@/components/FriendViewModal";
+import PersonalViewModal from "@/components/PersonalViewModal";
 
 const Dashboard = (userData) => {
   // Mock data for all running ads (admin + user ads)
@@ -435,7 +436,7 @@ const handlePasswordChange = async () => {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{userProfile.views || 0}</div>
-                  <p className="text-xs text-muted-foreground">+12% from last month</p>
+                  {/* <p className="text-xs text-muted-foreground">+12% from last month</p> */}
                 </CardContent>
               </Card>
 
@@ -1339,12 +1340,12 @@ const handlePasswordChange = async () => {
   return (
     <div className="min-h-screen bg-background flex">
        {/* DESKTOP SIDEBAR */}
-  <div className="hidden md:flex">
-    <DashboardSidebar 
-      activeSection={activeSection} 
-      onSectionChange={setActiveSection} 
-    />
-  </div>
+    <div className="hidden md:flex">
+      <DashboardSidebar 
+        activeSection={activeSection} 
+        onSectionChange={setActiveSection} 
+      />
+    </div>
 
   {/* MOBILE SIDEBAR */}
   <div
@@ -1509,7 +1510,7 @@ const handlePasswordChange = async () => {
       />
 
 
-      <ProfileViewModal
+      <PersonalViewModal
         profile={userProfile}
         open={viewProfileOpen}
         onOpenChange={setViewProfileOpen}
