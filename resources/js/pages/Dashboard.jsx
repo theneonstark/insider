@@ -502,7 +502,7 @@ const handlePasswordChange = async () => {
                 <Button variant="outline" onClick={() => setActiveSection("profile")}>
                   Edit Profile
                 </Button>
-                <Button variant="outline" onClick={() => setActiveSection("chat")}>
+                <Button variant="outline" onClick={() => setActiveSection("friends")}>
                   Check Messages
                 </Button>
               </CardContent>
