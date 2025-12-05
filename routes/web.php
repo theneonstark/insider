@@ -8,6 +8,7 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\ConnectionController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MemberController;
+use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SearchController;
@@ -54,6 +55,15 @@ Route::group(['prefix' => 'membership'], function () {
 });
 
 Route::post('/increase-view', [HomeController::class, 'increaseView']);
+
+Route::get('/forgot-password', [PasswordResetController::class, 'showEmailForm']);
+Route::post('/forgot-password/send-otp', [PasswordResetController::class, 'sendOtp']);
+
+Route::get('/forgot-password/verify', [PasswordResetController::class, 'showOtpForm']);
+Route::post('/forgot-password/verify', [PasswordResetController::class, 'verifyOtp']);
+
+Route::get('/forgot-password/reset', [PasswordResetController::class, 'showResetForm']);
+Route::post('/forgot-password/reset', [PasswordResetController::class, 'resetPassword']);
 
 Route::group(['middleware'=>'auth'], function () {
 
